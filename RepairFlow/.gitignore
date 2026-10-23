@@ -1,0 +1,43 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Data, recordings, database
+data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+backend/data/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node / frontend
+# The served SPA is frontend-fixi/; its build output is ignored by
+# frontend-fixi/.gitignore. The old `frontend/` app was deleted on
+# 2026-09-21 (recover any file with `git show bd61137:frontend/<path>`),
+# so its dist/.vite rules went with it.
+node_modules/
+dist/
+.vite/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Claude Code local settings and agent worktree scratch state
+.claude/
+
+# Logs
+*.log
