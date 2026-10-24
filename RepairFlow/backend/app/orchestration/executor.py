@@ -1,0 +1,708 @@
+"""Action ledger admission, approval and execution.
+
+Two distinct version checks live here (see docs/10 idempotency section):
+- admit_proposal compares a FRESH ActionProposal.expected_case_version
+  against the current case version (rejects a stale semantic decision).
+- decide_approval compares the OPERATOR's ApprovalDecision.expected_case_version
+  (what they saw when they clicked approve) against the current case version.
+Neither check is reused for the other, and EXECUTE_ACTION never compares a
+stored version at all: it only re-validates current business predicates,
+so an approval's own version bump can never invalidate the action it just
+approved.
+"""
+from __future__ import annotations
+
+import logging
+
+from datetime import datetime, timezone
+from typing import Protocol
+
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from sqlalchemy import update as sa_update
+
+from app.db import session_scope
+from app.domain import policy
+from app.domain import services
+from app.orchestration.dedupe import payload_hash
+from app.domain.errors import ConflictError, DomainError, NotFoundError, PolicyRejectedError, StaleVersionError
+from app.domain.services import ActorContext
+from app.domain.transitions import assert_work_order_transition
+from app.integrations.booking import mock_booking_connector
+from app.models import (
+    AppointmentModel,
+    ContractorCandidateModel,
+    ContractorReportModel,
+    RepairCaseModel,
+    ResearchSnapshotModel,
+    WorkOrderModel,
+    new_uuid,
+)
+from app.schemas import (
+    AcceptReport,
+    ActionState,
+    AddPrerequisite,
+    Approval,
+    ApplyTriage,
+    ApprovalDecision,
+    BookingRequest,
+    BookingStatus,
+    CommandResult,
+    CommandResultStatus,
+    ContractorSearchResult,
+    DiscoverContractors,
+    Escalate,
+    NextAction,
+    RequestConfirmation,
+    RequestInformation,
+    ResolveCase,
+    RiskAssessment,
+    ScheduleVisit,
+    ToolError,
+    ToolErrorCode,
+    Wait,
+    WorkOrderStatus,
+)
+from app.schemas import ActionProposal
+
+
+def utcnow() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+class ResearchAdapter(Protocol):
+    async def search(self, case_id: str, trade, postcode: str) -> ContractorSearchResult: ...
+
+
+class FixtureResearchAdapter:
+    """No-network placeholder used until Phase 6 wires a real Tavily adapter."""
+
+    async def search(self, case_id: str, trade, postcode: str) -> ContractorSearchResult:
+        from app.schemas import Provenance, ResearchSnapshot
+
+        now = utcnow()
+        return ContractorSearchResult(
+            research=ResearchSnapshot(
+                id=new_uuid(), case_id=case_id, query=f"{trade.value} contractor {postcode}",
+                provider="TAVILY", requested_at=now, completed_at=now,
+                result_urls=[], results=[], provenance=Provenance.FIXTURE,
+            ),
+            candidates=[],
+            warnings=["Tavily is not configured; research adapter running in FIXTURE mode with no results."],
+        )
+
+
+def _target_id(action: NextAction) -> str | None:
+    if isinstance(action, ScheduleVisit):
+        return str(action.work_order_id)
+    if isinstance(action, AddPrerequisite):
+        return str(action.blocked_work_order_id)
+    if isinstance(action, AcceptReport):
+        return str(action.report_id)
+    if isinstance(action, ResolveCase):
+        return str(action.issue_id)
+    return None
+
+
+async def _idempotency_key(session: AsyncSession, action: NextAction, case_id: str, trigger_event_id: str) -> str:
+    if isinstance(action, ApplyTriage):
+        return f"triage:{case_id}:{trigger_event_id}"
+    if isinstance(action, RequestInformation):
+        return f"request_info:{case_id}:{action.purpose.value}:{trigger_event_id}"
+    if isinstance(action, DiscoverContractors):
+        return f"discover:{case_id}:{action.trade.value}:{trigger_event_id}"
+    if isinstance(action, ScheduleVisit):
+        count = (
+            await session.execute(
+                select(func.count()).select_from(AppointmentModel).where(AppointmentModel.work_order_id == str(action.work_order_id))
+            )
+        ).scalar_one()
+        return f"booking:{action.work_order_id}:{action.slot_id}:{count + 1}"
+    if isinstance(action, AddPrerequisite):
+        return f"report:{action.report_id}:prerequisite"
+    if isinstance(action, AcceptReport):
+        return f"report:{action.report_id}:accept"
+    if isinstance(action, RequestConfirmation):
+        return f"request_confirmation:{case_id}:{action.issue_id}:{trigger_event_id}"
+    if isinstance(action, ResolveCase):
+        return f"resolve:{case_id}:{action.confirmation_event_id}"
+    if isinstance(action, Escalate):
+        return f"escalate:{case_id}:{trigger_event_id}"
+    if isinstance(action, Wait):
+        return f"wait:{case_id}:{trigger_event_id}"
+    raise ValueError(f"unhandled action for idempotency key: {action!r}")
+
+
+async def _needs_approval(session: AsyncSession, action: NextAction) -> bool:
+    if isinstance(action, ApplyTriage):
+        return policy.triage_requires_approval(action.risk)
+    if isinstance(action, ScheduleVisit):
+        wo = await session.get(WorkOrderModel, str(action.work_order_id))
+        if wo is None:
+            return True
+        # The case's risk assessment, not just the work order: docs/19
+        # requires a reviewed plan before booking a visit to a
+        # vulnerable occupant, and that fact lives on the case.
+        case = await session.get(RepairCaseModel, wo.case_id)
+        risk = RiskAssessment.model_validate(case.risk) if case is not None else None
+        return policy.work_order_requires_approval_to_schedule(
+            wo.kind, wo.quote_pence, wo.approved_limit_pence, risk
+        )
+    if isinstance(action, AcceptReport):
+        if action.outcome != "COMPLETED":
+            return False
+        report = await session.get(ContractorReportModel, str(action.report_id))
+        if report is None:
+            return True
+        wo = await session.get(WorkOrderModel, report.work_order_id)
+        return policy.report_acceptance_requires_approval(wo.kind) if wo else True
+    return False
+
+
+async def _booking_retry_key(session: AsyncSession, proposal: ActionProposal, base_key: str) -> str:
+    """Admit a new-version retry only after every earlier attempt conclusively ended."""
+    from app.models import ActionRecordModel, MockReservationModel
+
+    retry_key = f"{base_key}:v{proposal.expected_case_version}"
+    attempts = (await session.execute(select(ActionRecordModel).where(
+        (ActionRecordModel.idempotency_key == base_key)
+        | ActionRecordModel.idempotency_key.startswith(f"{base_key}:v", autoescape=True)
+    ))).scalars().all()
+    for attempt in attempts:
+        if attempt.idempotency_key == retry_key:
+            continue  # Caller handles exact replay/conflicting payload for this generation.
+        previous_version = attempt.proposal.get("expected_case_version", proposal.expected_case_version)
+        result = attempt.result or {}
+        error = result.get("error") or {}
+        safely_failed = (attempt.state == ActionState.FAILED.value
+            and result.get("status") == "REJECTED"
+            and not error.get("reconciliation_required", False))
+        if (previous_version >= proposal.expected_case_version
+                or not (attempt.state == ActionState.REJECTED.value or safely_failed)):
+            raise ConflictError("Earlier booking attempt is not conclusively failed at an older case version")
+        reservation = (await session.execute(select(MockReservationModel.id).where(
+            MockReservationModel.action_id == attempt.id,
+            MockReservationModel.status != "CANCELLED"))).first()
+        appointment = (await session.execute(select(AppointmentModel.id).where(
+            AppointmentModel.action_id == attempt.id,
+            AppointmentModel.status != "CANCELLED"))).first()
+        if reservation or appointment:
+            raise ConflictError("Earlier booking effects require reconciliation before another attempt")
+    return retry_key
+
+
+async def admit_proposal(session: AsyncSession, proposal: ActionProposal, actor: ActorContext):
+    from app.models import ActionRecordModel
+
+    case = await services.load_case(session, str(proposal.case_id))
+    if case.version != proposal.expected_case_version:
+        raise StaleVersionError(
+            f"proposal targeted version {proposal.expected_case_version}, case is at {case.version}",
+            current_version=case.version,
+        )
+
+    idempotency_key = await _idempotency_key(session, proposal.action, str(proposal.case_id), str(proposal.trigger_event_id))
+    proposal_hash = payload_hash(proposal.model_dump_json())
+
+    existing = (
+        await session.execute(select(ActionRecordModel).where(ActionRecordModel.idempotency_key == idempotency_key))
+    ).scalar_one_or_none()
+    if existing is not None:
+        if existing.payload_hash == proposal_hash:
+            return existing
+        if isinstance(proposal.action, ScheduleVisit):
+            idempotency_key = await _booking_retry_key(session, proposal, idempotency_key)
+            retry = (await session.execute(select(ActionRecordModel).where(
+                ActionRecordModel.idempotency_key == idempotency_key))).scalar_one_or_none()
+            if retry is not None:
+                if retry.payload_hash == proposal_hash:
+                    return retry
+                raise ConflictError("Booking retry generation already contains a different proposal")
+        else:
+            raise ConflictError(f"idempotency key {idempotency_key} reused with a different proposal payload")
+
+    if isinstance(proposal.action, ApplyTriage):
+        policy.validate_triage_evidence(RiskAssessment.model_validate(case.risk), proposal.action.risk)
+    needs_approval = await _needs_approval(session, proposal.action)
+    action_record = ActionRecordModel(
+        id=new_uuid(), case_id=str(proposal.case_id), kind=proposal.action.kind,
+        target_id=_target_id(proposal.action), idempotency_key=idempotency_key, payload_hash=proposal_hash,
+        proposal=proposal.model_dump(mode="json"),
+        state=(ActionState.AWAITING_APPROVAL if needs_approval else ActionState.PENDING).value,
+    )
+    session.add(action_record)
+    await session.flush()
+    if not needs_approval:
+        await services.enqueue_job(
+            session, case_id=action_record.case_id, kind="EXECUTE_ACTION",
+            dedupe_key=f"execute:{action_record.id}", payload={"action_id": action_record.id},
+        )
+    return action_record
+
+
+async def decide_approval(session: AsyncSession, decision: ApprovalDecision, actor: ActorContext) -> CommandResult:
+    from app.models import ActionRecordModel
+
+    action_record = await session.get(ActionRecordModel, str(decision.action_id))
+    if action_record is None:
+        raise NotFoundError(f"action {decision.action_id} not found")
+    case = await services.load_case(session, action_record.case_id)
+
+    if action_record.state != ActionState.AWAITING_APPROVAL.value:
+        raise PolicyRejectedError(f"action {action_record.id} is not awaiting approval (state={action_record.state})")
+    if action_record.payload_hash != decision.action_payload_hash:
+        raise ConflictError("approval targets a proposal payload that no longer matches the recorded action")
+    if case.version != decision.expected_case_version:
+        raise StaleVersionError("approval view is stale; refresh before deciding", current_version=case.version)
+    if decision.approve:
+        _assert_execution_allowed(case, None)
+
+    # Claim the decision atomically before acting on it.
+    #
+    # The read-then-check above is not enough on its own: two concurrent
+    # approvals of the same action both saw AWAITING_APPROVAL and both
+    # proceeded. Only an incidental UNIQUE constraint on
+    # case_events(case_id, source_event_key) stopped the second from
+    # double-executing, and it surfaced as an unhandled 500 rather than a
+    # clean conflict -- which is luck, not design, and would not hold for
+    # an action whose event key differed.
+    #
+    # A conditional UPDATE guarded on the current state is the claim: the
+    # first writer moves the row out of AWAITING_APPROVAL, the second
+    # matches zero rows and is told plainly that someone got there first.
+    claimed_state = (
+        ActionState.REJECTED.value if not decision.approve else ActionState.PENDING.value
+    )
+    claim = await session.execute(
+        sa_update(ActionRecordModel)
+        .where(
+            ActionRecordModel.id == action_record.id,
+            ActionRecordModel.state == ActionState.AWAITING_APPROVAL.value,
+        )
+        .values(state=claimed_state, updated_at=utcnow())
+    )
+    if claim.rowcount != 1:
+        raise ConflictError(
+            f"action {action_record.id} was already decided by another request"
+        )
+    await session.refresh(action_record)
+
+    if not decision.approve:
+        action_record.state = ActionState.REJECTED.value
+        action_record.updated_at = utcnow()
+        event = await services.append_event(
+            session, case_id=case.id, event_type="APPROVAL_DECIDED",
+            payload={"approved": False, "action_id": action_record.id, "reason": decision.reason},
+            actor=actor, source_event_key=f"approval:{action_record.id}:rejected",
+        )
+        hold_events = []
+        if case.status in ("ACTIVE", "AWAITING_CONFIRMATION", "RESOLVED"):
+            hold = await services.escalate_to_human(session, case_id=case.id,
+                action=Escalate(reason_code="APPROVAL_REJECTED",
+                    operator_message=f"Approval rejected: {decision.reason or 'Operator review required before continuing'}"),
+                trigger_event_id=event.id, actor=actor)
+            hold_events = hold.event_ids
+        else:
+            services.bump_version(case)
+        return CommandResult(status=CommandResultStatus.APPLIED, case_version=case.version,
+            event_ids=[event.id, *hold_events])
+
+    action_record.approval = Approval(
+        operator_id=actor.actor_id, approved_at=utcnow(), action_payload_hash=decision.action_payload_hash,
+        authorized_limit_pence=decision.authorized_limit_pence, reason=decision.reason,
+        reviewed_risk=RiskAssessment.model_validate(case.risk),
+    ).model_dump(mode="json")
+    action_record.state = ActionState.PENDING.value
+    action_record.updated_at = utcnow()
+    services.bump_version(case)
+    event = await services.append_event(
+        session, case_id=case.id, event_type="APPROVAL_DECIDED",
+        payload={"approved": True, "action_id": action_record.id}, actor=actor,
+        source_event_key=f"approval:{action_record.id}:approved",
+    )
+    await services.enqueue_job(
+        session, case_id=case.id, kind="EXECUTE_ACTION",
+        dedupe_key=f"execute:{action_record.id}", payload={"action_id": action_record.id},
+    )
+    return CommandResult(status=CommandResultStatus.APPLIED, case_version=case.version, event_ids=[event.id])
+
+
+def _record_terminal(action_record, state: ActionState, result: CommandResult) -> None:
+    action_record.state = state.value
+    action_record.result = result.model_dump(mode="json")
+    action_record.updated_at = utcnow()
+
+
+def _assert_execution_allowed(case, action: NextAction | None) -> None:
+    if case.archive_batch_id or case.status in ("CANCELLED", "ESCALATED"):
+        raise PolicyRejectedError("Case is closed, held, or archival; this action cannot execute")
+    if case.status == "RESOLVED" and not isinstance(action, Escalate):
+        raise PolicyRejectedError("Reopen the resolved case before executing new work")
+    risk = RiskAssessment.model_validate(case.risk)
+    if policy.is_hazard(risk) and not isinstance(action, Escalate):
+        raise PolicyRejectedError("New safety hazard requires escalation before executing work")
+    if isinstance(action, ScheduleVisit) and policy.has_unknown_critical_safety_fact(risk):
+        raise PolicyRejectedError("Missing critical safety answers must be collected before booking")
+
+
+def _assert_approval_risk_current(case, action_record) -> None:
+    approval = action_record.approval
+    if not approval:
+        return
+    current = RiskAssessment.model_validate(case.risk)
+    reviewed = approval.get("reviewed_risk")
+    if reviewed is None:
+        if policy.vulnerability_requires_reviewed_plan(current):
+            raise PolicyRejectedError("Legacy approval has no reviewed vulnerability plan; obtain a fresh approval")
+        return
+    before = RiskAssessment.model_validate(reviewed)
+    fields = ("gas", "fire", "water_near_electrics", "structural_danger", "uncontrolled_flood", "vulnerability_concern")
+    if any(getattr(before, name) != getattr(current, name) for name in fields):
+        raise PolicyRejectedError("Safety or accessibility changed after approval; obtain a fresh approval")
+
+
+async def _dispatch_local(session: AsyncSession, case_id: str, action_id: str, action: NextAction, trigger_event_id: str, actor: ActorContext) -> CommandResult:
+    if isinstance(action, ApplyTriage):
+        return await services.apply_triage(session, case_id=case_id, action=action, trigger_event_id=trigger_event_id, actor=actor)
+    if isinstance(action, AddPrerequisite):
+        return await services.add_prerequisite(session, case_id=case_id, action=action, action_id=action_id, trigger_event_id=trigger_event_id, actor=actor)
+    if isinstance(action, AcceptReport):
+        return await services.accept_report(session, case_id=case_id, action=action, action_id=action_id, trigger_event_id=trigger_event_id, actor=actor)
+    if isinstance(action, RequestInformation):
+        return await services.request_information(session, case_id=case_id, action=action, actor=actor)
+    if isinstance(action, RequestConfirmation):
+        return await services.request_confirmation(session, case_id=case_id, action=action, actor=actor)
+    if isinstance(action, ResolveCase):
+        return await services.resolve_case(session, case_id=case_id, action=action, trigger_event_id=trigger_event_id, actor=actor)
+    if isinstance(action, Escalate):
+        return await services.escalate_to_human(session, case_id=case_id, action=action, trigger_event_id=trigger_event_id, actor=actor)
+    if isinstance(action, Wait):
+        return await services.wait_for_event(session, case_id=case_id, action=action, actor=actor)
+    raise ValueError(f"no local dispatch for {action!r}")
+
+
+logger = logging.getLogger(__name__)
+
+
+async def execute_action(action_id: str, *, research_adapter: ResearchAdapter | None = None) -> CommandResult:
+    from app.models import ActionRecordModel
+
+    research_adapter = research_adapter or FixtureResearchAdapter()
+    external_kind: str | None = None
+    external_payload = None
+
+    async with session_scope() as session:
+        action_record = await session.get(ActionRecordModel, action_id)
+        if action_record is None:
+            raise NotFoundError(f"action {action_id} not found")
+        if action_record.state != ActionState.PENDING.value:
+            if action_record.result:
+                return CommandResult.model_validate(action_record.result)
+            case = await services.load_case(session, action_record.case_id)
+            return CommandResult(status=CommandResultStatus.NOOP, case_version=case.version)
+
+        proposal = ActionProposal.model_validate(action_record.proposal)
+        action = proposal.action
+        case_id = action_record.case_id
+        trigger_event_id = str(proposal.trigger_event_id)
+        actor = ActorContext(actor_type="EXECUTOR", actor_id="executor", correlation_id=action_record.id)
+
+        try:
+            current_case = await services.load_case(session, case_id)
+            _assert_execution_allowed(current_case, action)
+            _assert_approval_risk_current(current_case, action_record)
+            if await _needs_approval(session, action) and not action_record.approval:
+                raise PolicyRejectedError("Current risk or authority requires a fresh operator approval")
+            if isinstance(action, ScheduleVisit):
+                from app.models import AvailabilityWindowModel, ContractorModel
+
+                work_order = await session.get(WorkOrderModel, str(action.work_order_id))
+                if work_order is None or work_order.case_id != case_id:
+                    raise NotFoundError(f"work order {action.work_order_id} not in case {case_id}")
+                if work_order.status != WorkOrderStatus.READY:
+                    raise PolicyRejectedError(f"work order {work_order.id} is not READY (status={work_order.status})")
+
+                contractor = await session.get(ContractorModel, str(action.contractor_id))
+                if contractor is None or contractor.approval_status != "APPROVED":
+                    raise PolicyRejectedError(f"contractor {action.contractor_id} is not an approved supplier")
+                from app.models import PropertyModel
+                case = await services.load_case(session, case_id)
+                prop = await session.get(PropertyModel, case.property_id)
+                if work_order.trade.value not in contractor.trades:
+                    raise PolicyRejectedError("Contractor does not provide the required trade")
+                if prop is None or not policy.contractor_covers_postcode(contractor.service_postcodes, prop.postcode):
+                    raise PolicyRejectedError("Contractor does not cover this property's postcode")
+
+                # Not `session.get(MockSlotModel, ...)`: listing candidate
+                # slots no longer writes them (it is reachable from a
+                # model-visible read tool, which must not commit), so a
+                # row existing now would mean "already booked" rather
+                # than "offered". Ask the connector instead.
+                slot = mock_booking_connector.offered_slot(
+                    str(action.contractor_id), work_order.trade, action.slot_id
+                )
+                if slot is None:
+                    raise PolicyRejectedError(f"slot {action.slot_id} does not exist")
+                if not action.tenant_availability_ids:
+                    raise PolicyRejectedError("no tenant availability cited for this booking")
+                windows = (
+                    await session.execute(
+                        select(AvailabilityWindowModel).where(
+                            AvailabilityWindowModel.id.in_([str(i) for i in action.tenant_availability_ids]),
+                            AvailabilityWindowModel.case_id == case_id,
+                        )
+                    )
+                ).scalars().all()
+                if len(windows) != len(action.tenant_availability_ids):
+                    raise PolicyRejectedError("cited availability window not found in this case")
+                if any(w.person_type != "TENANT" or w.person_id != case.tenant_id
+                       or not w.confirmed_at or w.expires_at <= utcnow() for w in windows):
+                    raise PolicyRejectedError("Tenant availability was withdrawn, expired, or belongs to another person")
+                covered = any(w.start_at <= slot.start_at and slot.end_at <= w.end_at for w in windows)
+                if not covered:
+                    raise PolicyRejectedError("proposed slot falls outside the cited tenant availability")
+
+                attempt_number = (
+                    await session.execute(
+                        select(func.count()).select_from(AppointmentModel).where(AppointmentModel.work_order_id == work_order.id)
+                    )
+                ).scalar_one() + 1
+                booking_request = BookingRequest(
+                    case_id=case_id, work_order_id=action.work_order_id, contractor_id=action.contractor_id,
+                    slot_id=action.slot_id, tenant_availability_ids=action.tenant_availability_ids,
+                    access_confirmed=True, authorized_limit_pence=work_order.approved_limit_pence or 0,
+                    idempotency_key=action_record.idempotency_key,
+                )
+                action_record.state = ActionState.RUNNING.value
+                action_record.updated_at = utcnow()
+                external_kind = "SCHEDULE_VISIT"
+                external_payload = (booking_request, attempt_number, work_order.id)
+            elif isinstance(action, DiscoverContractors):
+                action_record.state = ActionState.RUNNING.value
+                action_record.updated_at = utcnow()
+                external_kind = "DISCOVER_CONTRACTORS"
+                external_payload = action
+            else:
+                result = await _dispatch_local(session, case_id, action_record.id, action, trigger_event_id, actor)
+                _record_terminal(action_record, ActionState.SUCCEEDED, result)
+                return result
+        except DomainError as exc:
+            result = CommandResult(
+                status=CommandResultStatus.REJECTED,
+                case_version=(await services.load_case(session, case_id)).version,
+                error=ToolError(code=exc.code, message=exc.message, retryable=exc.retryable, reconciliation_required=exc.reconciliation_required),
+            )
+            _record_terminal(action_record, ActionState.FAILED, result)
+            return result
+
+    # --- Phase B: outside any open transaction ---
+    #
+    # Everything from here to the terminal write is wrapped. The record is
+    # sitting at RUNNING; if this raises and nothing catches it, the
+    # record stays RUNNING forever. Nothing in the codebase reconciles
+    # that state, and ScheduleVisit's idempotency key is derived from the
+    # count of existing appointments, so a retry of the same work order
+    # then hits a ConflictError and the case is stuck permanently.
+    #
+    # UNKNOWN, not FAILED: the external call may well have succeeded
+    # before we lost the thread. Claiming it failed would be a guess, and
+    # "provider request acceptance is not booking confirmation" cuts both
+    # ways — the honest state is that we do not know, and a human needs
+    # to reconcile it. `reconciliation_required` is what surfaces that.
+    try:
+        if external_kind == "SCHEDULE_VISIT":
+            booking_request, attempt_number, work_order_id = external_payload
+            async with session_scope() as booking_session:
+                outcome = await mock_booking_connector.book(booking_session, booking_request, action_id=action_id)
+            return await _apply_schedule_result(action_id, work_order_id, booking_request, attempt_number, outcome)
+
+        if external_kind == "DISCOVER_CONTRACTORS":
+            action = external_payload
+            search_result = await research_adapter.search(case_id, action.trade, action.postcode)
+            return await _apply_research_result(action_id, search_result)
+    except Exception as exc:  # noqa: BLE001 - must not leave the ledger at RUNNING
+        logger.exception("external action %s (%s) failed after commit-intent", action_id, external_kind)
+        async with session_scope() as recovery_session:
+            stranded = await recovery_session.get(ActionRecordModel, action_id)
+            if stranded is not None and stranded.state == ActionState.RUNNING.value:
+                case_version = (await services.load_case(recovery_session, stranded.case_id)).version
+                unknown = CommandResult(
+                    status=CommandResultStatus.UNKNOWN,
+                    case_version=case_version,
+                    error=ToolError(
+                        code=ToolErrorCode.EXTERNAL_RESULT_UNKNOWN,
+                        message=(
+                            f"{external_kind} was sent but its outcome was never recorded: "
+                            f"{type(exc).__name__}: {exc}"
+                        )[:400],
+                        retryable=False,
+                        reconciliation_required=True,
+                    ),
+                )
+                _record_terminal(stranded, ActionState.UNKNOWN, unknown)
+                await services.append_event(
+                    recovery_session, case_id=stranded.case_id, event_type="ACTION_UNKNOWN",
+                    payload={
+                        "action_id": action_id,
+                        "external_kind": external_kind,
+                        "error": f"{type(exc).__name__}: {exc}"[:400],
+                    },
+                    actor=actor, source_event_key=f"action-unknown:{action_id}",
+                )
+                return unknown
+        raise
+
+    raise AssertionError("unreachable: no local result and no external kind selected")
+
+
+async def _apply_schedule_result(action_id: str, work_order_id: str, booking_request: BookingRequest, attempt_number: int, outcome) -> CommandResult:
+    from app.models import ActionRecordModel
+
+    async with session_scope() as session:
+        action_record = await session.get(ActionRecordModel, action_id)
+        case = await services.load_case(session, action_record.case_id)
+        work_order = await session.get(WorkOrderModel, work_order_id)
+
+        try:
+            proposed_action = ActionProposal.model_validate(action_record.proposal).action
+            _assert_execution_allowed(case, proposed_action)
+            _assert_approval_risk_current(case, action_record)
+            if work_order.status != WorkOrderStatus.READY:
+                raise PolicyRejectedError("Work changed while the booking was in progress")
+            if await _needs_approval(session, proposed_action) and not action_record.approval:
+                raise PolicyRejectedError("Approval requirements changed while the booking was in progress")
+            from app.models import AvailabilityWindowModel, ContractorModel, PropertyModel
+            contractor = await session.get(ContractorModel, str(booking_request.contractor_id))
+            prop = await session.get(PropertyModel, case.property_id)
+            if (contractor is None or contractor.approval_status != "APPROVED"
+                    or work_order.trade.value not in contractor.trades or prop is None
+                    or not policy.contractor_covers_postcode(contractor.service_postcodes, prop.postcode)):
+                raise PolicyRejectedError("Contractor eligibility changed while the booking was in progress")
+            windows = (await session.execute(select(AvailabilityWindowModel).where(
+                AvailabilityWindowModel.id.in_([str(i) for i in booking_request.tenant_availability_ids]),
+                AvailabilityWindowModel.case_id == case.id,
+            ))).scalars().all()
+            if (len(windows) != len(booking_request.tenant_availability_ids)
+                    or any(w.expires_at <= utcnow() for w in windows)):
+                raise PolicyRejectedError("Access availability changed while the booking was in progress")
+        except PolicyRejectedError as exc:
+            # This connector is local and transactional. Undo a reservation which
+            # completed after a human cancelled/held the case; never create a
+            # booked visit on a now-ineligible case.
+            reconciled = outcome.status not in (BookingStatus.CONFIRMED, BookingStatus.PENDING, BookingStatus.UNKNOWN)
+            if outcome.provider_booking_id:
+                cancelled = await mock_booking_connector.cancel(session, outcome.provider_booking_id,
+                    f"reconcile:{action_id}")
+                reconciled = cancelled.status == "CANCELLED"
+            result = CommandResult(status=CommandResultStatus.REJECTED if reconciled else CommandResultStatus.UNKNOWN,
+                case_version=case.version, error=ToolError(code=ToolErrorCode.POLICY_REJECTED,
+                    message=f"{exc}. Booking {'cancelled' if reconciled else 'requires reconciliation'}.",
+                    retryable=False, reconciliation_required=not reconciled))
+            _record_terminal(action_record, ActionState.FAILED if reconciled else ActionState.UNKNOWN, result)
+            return result
+
+        if outcome.status == BookingStatus.CONFIRMED:
+            appointment = AppointmentModel(
+                id=new_uuid(), case_id=case.id, work_order_id=work_order.id,
+                contractor_id=str(booking_request.contractor_id), slot_id=booking_request.slot_id,
+                # PENDING, not CONFIRMED. CLAUDE.md: "Provider request
+                # acceptance is not booking confirmation", and docs/07:
+                # "CONFIRMED requires connector acknowledgment". The mock
+                # connector acknowledges instantly because it is the same
+                # process answering itself -- no contractor has agreed to
+                # anything. Writing CONFIRMED made the status field assert
+                # a fact that never happened, which no provenance label
+                # can undo: a reader filtering for confirmed visits got
+                # fabrications. CONFIRMED is now reachable only through
+                # the human-recorded path, where somebody really did
+                # arrange it.
+                start_at=outcome.confirmed_start, end_at=outcome.confirmed_end, status="PENDING",
+                connector="MOCK", provider_booking_id=outcome.provider_booking_id, action_id=action_record.id,
+                attempt_number=attempt_number, availability_revision=1, provenance=outcome.provenance,
+            )
+            session.add(appointment)
+            assert_work_order_transition(work_order.status, WorkOrderStatus.SCHEDULED)
+            work_order.status = WorkOrderStatus.SCHEDULED
+            # WorkOrderModel.contractor_id existed on the model/schema but was
+            # never actually written anywhere -- a real gap, found while
+            # wiring the "assigned contractor" projection (decision B, which
+            # explicitly resolves it via WorkOrder.contractor_id). A booking
+            # confirmation is exactly the fact that assigns a contractor to
+            # the work order, so record it here.
+            work_order.contractor_id = str(booking_request.contractor_id)
+            work_order.updated_at = utcnow()
+            services.bump_version(case)
+            event = await services.append_event(
+                session, case_id=case.id, event_type="APPOINTMENT_CONFIRMED",
+                payload={"appointment_id": appointment.id, "work_order_id": work_order.id},
+                actor=ActorContext("EXECUTOR", "executor", action_record.id),
+                source_event_key=f"booking:{action_record.idempotency_key}:confirmed",
+            )
+            result = CommandResult(status=CommandResultStatus.APPLIED, case_version=case.version, event_ids=[event.id], resource_ids={"appointment_id": appointment.id})
+            _record_terminal(action_record, ActionState.SUCCEEDED, result)
+            return result
+
+        if outcome.status in (BookingStatus.PENDING, BookingStatus.UNKNOWN):
+            event = await services.append_event(
+                session, case_id=case.id, event_type="ACTION_UNKNOWN",
+                payload={"action_id": action_record.id, "reason": outcome.reason},
+                actor=ActorContext("EXECUTOR", "executor", action_record.id),
+                source_event_key=f"booking:{action_record.idempotency_key}:unknown",
+            )
+            result = CommandResult(status=CommandResultStatus.UNKNOWN, case_version=case.version, event_ids=[event.id], error=ToolError(code=ToolErrorCode.EXTERNAL_RESULT_UNKNOWN, message=outcome.reason or "booking outcome unknown", retryable=False, reconciliation_required=True))
+            _record_terminal(action_record, ActionState.UNKNOWN, result)
+            return result
+
+        event = await services.append_event(
+            session, case_id=case.id, event_type="ACTION_FAILED",
+            payload={"action_id": action_record.id, "reason": outcome.reason},
+            actor=ActorContext("EXECUTOR", "executor", action_record.id),
+            source_event_key=f"booking:{action_record.idempotency_key}:failed",
+        )
+        result = CommandResult(status=CommandResultStatus.REJECTED, case_version=case.version, event_ids=[event.id], error=ToolError(code=ToolErrorCode.POLICY_REJECTED, message=outcome.reason or "booking rejected", retryable=False))
+        _record_terminal(action_record, ActionState.FAILED, result)
+        return result
+
+
+async def _apply_research_result(action_id: str, search_result: ContractorSearchResult) -> CommandResult:
+    from app.models import ActionRecordModel
+
+    async with session_scope() as session:
+        action_record = await session.get(ActionRecordModel, action_id)
+        case = await services.load_case(session, action_record.case_id)
+
+        snapshot = ResearchSnapshotModel(
+            id=str(search_result.research.id), case_id=case.id, query=search_result.research.query,
+            provider=search_result.research.provider, provider_request_id=search_result.research.provider_request_id,
+            requested_at=search_result.research.requested_at, completed_at=search_result.research.completed_at,
+            result_urls=search_result.research.result_urls,
+            results=[r.model_dump(mode="json") for r in search_result.research.results],
+            provenance=search_result.research.provenance,
+        )
+        session.add(snapshot)
+        for candidate in search_result.candidates:
+            session.add(
+                ContractorCandidateModel(
+                    id=str(candidate.id), case_id=case.id, research_id=snapshot.id, name=candidate.name,
+                    trades=[t.value for t in candidate.trades], website=str(candidate.website) if candidate.website else None,
+                    phone=candidate.phone, service_area=candidate.service_area,
+                    claimed_emergency_service=candidate.claimed_emergency_service,
+                    evidence=[e.model_dump(mode="json") for e in candidate.evidence],
+                    verification_status=candidate.verification_status,
+                )
+            )
+        services.bump_version(case)
+        event = await services.append_event(
+            session, case_id=case.id, event_type="RESEARCH_COMPLETED",
+            payload={"research_id": snapshot.id, "candidate_count": len(search_result.candidates),
+                     "trade": action_record.proposal["action"]["trade"]},
+            actor=ActorContext("EXECUTOR", "executor", action_record.id),
+            source_event_key=f"research:{snapshot.id}",
+            causation_event_id=action_record.proposal["trigger_event_id"],
+        )
+        await services.enqueue_job(session, case_id=case.id, kind="COORDINATE",
+            dedupe_key=f"coordinate:{case.id}:{case.version}", payload={"trigger_event_id": event.id})
+        result = CommandResult(status=CommandResultStatus.APPLIED, case_version=case.version, event_ids=[event.id], resource_ids={"research_id": snapshot.id})
+        _record_terminal(action_record, ActionState.SUCCEEDED, result)
+        return result

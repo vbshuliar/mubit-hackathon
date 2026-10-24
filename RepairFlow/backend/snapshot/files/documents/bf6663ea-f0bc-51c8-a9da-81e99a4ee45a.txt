@@ -1,0 +1,7 @@
+RepairFlow archival record
+Case: Consumer unit tripping during storms
+Property: 2 Wellington Close, Cardiff
+Category: ELECTRICAL
+Closed: 2021-09-05
+
+This is a synthetic sample document created for demo history illustration. It is not a real invoice, quote, or piece of correspondence.
