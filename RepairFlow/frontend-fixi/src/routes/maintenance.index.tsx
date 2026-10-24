@@ -1,25 +1,13 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import {
-  AlertTriangle,
-  BarChart3,
-  CheckCircle2,
-  ChevronDown,
-  ChevronRight,
-  Clock3,
-  FileText,
-  MessageCircle,
-  MoreHorizontal,
-  type LucideIcon,
-} from "lucide-react";
+import { LayoutGrid, List, ChevronDown, ChevronRight, MoreHorizontal } from "lucide-react";
 import { useMemo, useState } from "react";
-import houseExterior from "@/assets/house-exterior.jpg";
 import { AppShell, Card } from "@/components/fixi/AppShell";
 import { PropertyPhoto } from "@/components/fixi/PropertyTabs";
 import { StatusBadge, UrgencyBadge } from "@/components/fixi/Badge";
-import { Metric } from "@/components/fixi/Metric";
-import { Skeleton, SkeletonCards, SkeletonKpis } from "@/components/fixi/Skeleton";
+import { CaseBoard, OperationsDeck } from "@/components/fixi/OperationsDeck";
+import { Skeleton, SkeletonCards } from "@/components/fixi/Skeleton";
 import { Button } from "@/components/ui/button";
 import { useCancelCase } from "@/hooks/use-case-actions";
 import { useCaseList } from "@/hooks/use-case-list";
@@ -36,7 +24,7 @@ import {
   type CaseStatus,
   type Urgency,
 } from "@/lib/fixi-data";
-import { formatDateRange, formatDeltaPct, formatRelative } from "@/lib/format";
+import { formatRelative } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 // One entry per <colgroup> column, in order: select, number, issue,
@@ -74,29 +62,8 @@ const statusFilters: Array<{ label: string; value: CaseStatus | "ALL" }> = [
   ...CASE_STATUSES.map((s) => ({ label: STATUS_LABEL[s], value: s })),
 ];
 
-const KPI_TONE_CLASS = {
-  red: "bg-status-red text-status-red-foreground",
-  blue: "bg-status-blue text-status-blue-foreground",
-  amber: "bg-status-amber text-status-amber-foreground",
-  green: "bg-status-green text-status-green-foreground",
-  gray: "bg-status-gray text-status-gray-foreground",
-} as const;
-
-type KpiTone = keyof typeof KPI_TONE_CLASS;
-
-interface KpiCardDef {
-  key: string;
-  value: string;
-  label: string;
-  tone: KpiTone;
-  Icon: LucideIcon;
-  /** Pre-formatted "↑12%" or null -- null means the backend had nothing
-   * honest to compare against (or this metric has no delta field at all),
-   * and MUST render no arrow rather than a fabricated one. */
-  delta: string | null;
-}
-
 function MaintenancePage() {
+  const [view, setView] = useState<"board" | "list">("board");
   const [statusFilter, setStatusFilter] = useState<CaseStatus | "ALL">("ALL");
   const [urgencyFilter, setUrgencyFilter] = useState<Urgency | "ALL">("ALL");
   const [propertyFilter, setPropertyFilter] = useState<string | "ALL">("ALL");
@@ -156,62 +123,6 @@ function MaintenancePage() {
     });
   }, [cases.data, urgencyFilter, contractorFilter]);
 
-  const kpis: KpiCardDef[] = metrics.data
-    ? [
-        {
-          key: "total",
-          value: String(metrics.data.total),
-          label: "Total tickets",
-          tone: "gray",
-          Icon: FileText,
-          delta: null,
-        },
-        {
-          key: "active",
-          value: String(metrics.data.active),
-          label: "Active",
-          tone: "blue",
-          Icon: Clock3,
-          delta: formatDeltaPct(metrics.data.active_delta_pct),
-        },
-        {
-          key: "awaiting_confirmation",
-          value: String(metrics.data.awaiting_confirmation),
-          label: "Awaiting confirmation",
-          tone: "amber",
-          Icon: MessageCircle,
-          delta: formatDeltaPct(metrics.data.awaiting_confirmation_delta_pct),
-        },
-        {
-          key: "escalated",
-          value: String(metrics.data.escalated),
-          label: "Escalated",
-          tone: "red",
-          Icon: AlertTriangle,
-          delta: formatDeltaPct(metrics.data.escalated_delta_pct),
-        },
-        {
-          key: "resolved_this_week",
-          value: String(metrics.data.resolved_this_week),
-          label: "Resolved this week",
-          tone: "green",
-          Icon: CheckCircle2,
-          delta: null,
-        },
-        {
-          key: "avg_resolution_hours",
-          value:
-            metrics.data.avg_resolution_hours !== null
-              ? `${metrics.data.avg_resolution_hours.toFixed(1)}h`
-              : "—",
-          label: "Avg resolve (30d)",
-          tone: "gray",
-          Icon: BarChart3,
-          delta: null,
-        },
-      ]
-    : [];
-
   // Real CONFIRMED visits across every case, soonest first (backend already
   // sorts); capped here so the sidebar card can't grow unbounded as more
   // demo cases get seeded.
@@ -219,367 +130,307 @@ function MaintenancePage() {
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-page px-6 py-4 xl:px-7">
-        <header>
-          <h1 className="text-title font-bold tracking-tight">Maintenance</h1>
-          <p className="mt-1 text-strong text-muted-foreground">
-            All property issues, from report to resolution.
-          </p>
+      <div className="operations-page mx-auto max-w-page px-6 py-4 xl:px-7">
+        <header className="operations-header">
+          <div>
+            <h1>Maintenance</h1>
+            <p>Your repairs, their dependencies and the decisions that move them forward.</p>
+          </div>
+          <div className="operations-date">
+            <span />
+            Operator workspace
+          </div>
         </header>
-
-        {kpis.length === 0 ? (
-          <SkeletonKpis className="mt-4" />
-        ) : (
-          <section className="queue-metrics mt-6">
-            {kpis.map((k) => (
-              <Card key={k.key} className="queue-metric flex items-start gap-3 px-4 py-3">
-                <span
+        <OperationsDeck
+          metrics={metrics.data}
+          metricsLoading={metrics.isLoading}
+          metricsError={metrics.isError}
+          items={items}
+          loading={cases.isLoading}
+          error={cases.isError}
+          visits={visits}
+          visitsLoading={upcoming.isLoading}
+          visitsError={upcoming.isError}
+          onEscalated={() => setStatusFilter("ESCALATED")}
+        />
+        <section className="queue-workspace" aria-label="Case queue">
+          <div className="queue-toolbar">
+            <div>
+              <h2>Repair workspace</h2>
+              <p>
+                {cases.isLoading
+                  ? "Loading cases…"
+                  : cases.isError
+                    ? "Queue unavailable"
+                    : `${items.length} loaded cases`}
+                {cases.data?.next_cursor ? " · more available through search" : ""}
+              </p>
+            </div>
+            <div className="queue-view-toggle" role="group" aria-label="Queue view">
+              <button
+                type="button"
+                aria-pressed={view === "board"}
+                onClick={() => setView("board")}
+              >
+                <LayoutGrid size={15} />
+                Board
+              </button>
+              <button type="button" aria-pressed={view === "list"} onClick={() => setView("list")}>
+                <List size={15} />
+                List
+              </button>
+            </div>
+          </div>
+          <section className="queue-filterbar mt-5 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-1.5">
+              {statusFilters.map((f) => (
+                <button
+                  key={f.value}
+                  aria-pressed={statusFilter === f.value}
+                  onClick={() => setStatusFilter(f.value)}
                   className={cn(
-                    "flex h-9 w-9 shrink-0 items-center justify-center rounded-full",
-                    KPI_TONE_CLASS[k.tone],
+                    "min-h-9 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors",
+                    statusFilter === f.value
+                      ? "border-foreground bg-foreground text-background"
+                      : "border-border bg-card text-foreground hover:bg-accent",
                   )}
                 >
-                  <k.Icon className="h-4 w-4" />
-                </span>
-                <div className="min-w-0">
-                  <div className="text-metric font-bold tracking-tight">
-                    <Metric value={k.value} />
-                  </div>
-                  <div className="text-body text-muted-foreground">{k.label}</div>
-                  {k.delta && (
-                    <div
-                      className={cn(
-                        "mt-1 text-micro font-semibold",
-                        k.tone === "red" ? "text-destructive" : "text-primary",
-                      )}
-                    >
-                      {k.delta}
-                      <span className="ml-1 font-normal text-muted-foreground">vs 7 days ago</span>
-                    </div>
-                  )}
-                </div>
-              </Card>
-            ))}
-          </section>
-        )}
-
-        <section className="mt-5 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-1.5">
-            {statusFilters.map((f) => (
-              <button
-                key={f.value}
-                aria-pressed={statusFilter === f.value}
-                onClick={() => setStatusFilter(f.value)}
-                className={cn(
-                  "min-h-9 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors",
-                  statusFilter === f.value
-                    ? "border-foreground bg-foreground text-background"
-                    : "border-border bg-card text-foreground hover:bg-accent",
-                )}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-          <details className="advanced-filters w-full">
-            <summary>
-              Advanced filters
-              {urgencyFilter !== "ALL" ||
-              propertyFilter !== "ALL" ||
-              contractorFilter !== "ALL" ||
-              includeArchived
-                ? " · filters applied"
-                : ""}
-            </summary>
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              <FilterDropdown
-                value={urgencyFilter}
-                onChange={setUrgencyFilter}
-                allLabel="All urgencies"
-                options={URGENCIES.map((u) => ({ value: u, label: URGENCY_LABEL[u] }))}
-              />
-              <FilterDropdown
-                value={propertyFilter}
-                onChange={setPropertyFilter}
-                allLabel="All properties"
-                options={(properties.data?.items ?? []).map((p) => ({
-                  value: p.id,
-                  label: p.address_line,
-                }))}
-              />
-              <FilterDropdown
-                value={contractorFilter}
-                onChange={setContractorFilter}
-                allLabel="All contractors"
-                options={contractorOptions.map((name) => ({ value: name, label: name }))}
-              />
-              <label className="flex h-9 items-center gap-2 rounded-lg border border-border bg-card px-3 text-xs font-medium text-foreground hover:bg-accent">
-                <input
-                  type="checkbox"
-                  className="accent-primary"
-                  checked={includeArchived}
-                  aria-label="Include archival sample history"
-                  onChange={(e) => setIncludeArchived(e.target.checked)}
-                />
-                Include archival sample history
-              </label>
+                  {f.label}
+                </button>
+              ))}
             </div>
-            <p className="mt-3 text-micro text-muted-foreground">
-              Urgency and contractor filters apply to the loaded results. Archival sample history
-              loads up to 100 records.
-            </p>
-          </details>
-        </section>
+            <details className="advanced-filters w-full">
+              <summary>
+                Advanced filters
+                {urgencyFilter !== "ALL" ||
+                propertyFilter !== "ALL" ||
+                contractorFilter !== "ALL" ||
+                includeArchived
+                  ? " · filters applied"
+                  : ""}
+              </summary>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <FilterDropdown
+                  value={urgencyFilter}
+                  onChange={setUrgencyFilter}
+                  allLabel="All urgencies"
+                  options={URGENCIES.map((u) => ({ value: u, label: URGENCY_LABEL[u] }))}
+                />
+                <FilterDropdown
+                  value={propertyFilter}
+                  onChange={setPropertyFilter}
+                  allLabel="All properties"
+                  options={(properties.data?.items ?? []).map((p) => ({
+                    value: p.id,
+                    label: p.address_line,
+                  }))}
+                />
+                <FilterDropdown
+                  value={contractorFilter}
+                  onChange={setContractorFilter}
+                  allLabel="All contractors"
+                  options={contractorOptions.map((name) => ({ value: name, label: name }))}
+                />
+                <label className="flex h-9 items-center gap-2 rounded-lg border border-border bg-card px-3 text-xs font-medium text-foreground hover:bg-accent">
+                  <input
+                    type="checkbox"
+                    className="accent-primary"
+                    checked={includeArchived}
+                    aria-label="Include archival sample history"
+                    onChange={(e) => setIncludeArchived(e.target.checked)}
+                  />
+                  Include archival sample history
+                </label>
+              </div>
+              <p className="mt-3 text-micro text-muted-foreground">
+                Urgency and contractor filters apply to the loaded results. Archival sample history
+                loads up to 100 records.
+              </p>
+            </details>
+          </section>
 
-        <div className="mt-5 flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-section font-semibold">Case queue</h2>
-          <p className="text-micro text-muted-foreground">
-            {cases.isLoading
-              ? "Loading cases…"
-              : cases.isError
-                ? "Queue unavailable"
-                : `${items.length} loaded case${items.length === 1 ? "" : "s"}`}
-            {cases.data?.next_cursor ? " · more results available through search and filters" : ""}
-          </p>
-        </div>
-        <div className="mt-3 grid items-start gap-5">
-          <Card className="queue-desktop overflow-x-auto">
-            <table
-              className="w-full min-w-[1050px] table-fixed text-body"
-              aria-label="Repair case queue"
-            >
-              <colgroup>
-                <col className="w-[54px]" />
-                <col className="w-[62px]" />
-                <col />
-                <col className="w-[100px]" />
-                <col className="w-[180px]" />
-                <col className="w-[195px]" />
-                <col className="w-[88px]" />
-                <col className="w-[44px]" />
-              </colgroup>
-              <thead>
-                <tr className="border-b border-border bg-muted/50 text-left text-muted-foreground">
-                  <th scope="col">
-                    <span className="sr-only">Property photo</span>
-                  </th>
-                  {["Case", "Issue / property", "Urgency", "Status", "Assigned to", "Updated"].map(
-                    (label) => (
-                      <th scope="col" key={label} className="px-3 py-3 text-micro font-medium">
-                        {label}
+          {view === "board" ? (
+            <CaseBoard
+              items={items}
+              loading={cases.isLoading}
+              error={cases.isError}
+              renderActions={(t) => (
+                <RowActions
+                  caseId={t.id}
+                  caseNumber={t.case_number}
+                  status={t.status}
+                  version={t.version}
+                />
+              )}
+            />
+          ) : (
+            <div className="mt-3 grid items-start gap-5">
+              <Card className="queue-desktop overflow-x-auto">
+                <table
+                  className="w-full min-w-[1050px] table-fixed text-body"
+                  aria-label="Repair case queue"
+                >
+                  <colgroup>
+                    <col className="w-[54px]" />
+                    <col className="w-[62px]" />
+                    <col />
+                    <col className="w-[100px]" />
+                    <col className="w-[180px]" />
+                    <col className="w-[195px]" />
+                    <col className="w-[88px]" />
+                    <col className="w-[44px]" />
+                  </colgroup>
+                  <thead>
+                    <tr className="border-b border-border bg-muted/50 text-left text-muted-foreground">
+                      <th scope="col">
+                        <span className="sr-only">Property photo</span>
                       </th>
-                    ),
-                  )}
-                  <th scope="col">
-                    <span className="sr-only">Actions</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {cases.isLoading &&
-                  Array.from({ length: 8 }).map((_, r) => (
-                    <tr key={r} className="h-20 border-b border-border">
-                      {SKELETON_CELLS.map((w, c) => (
-                        <td key={c} className="px-3">
-                          {w ? <Skeleton className={cn("h-3", w)} /> : null}
-                        </td>
+                      {[
+                        "Case",
+                        "Issue / property",
+                        "Urgency",
+                        "Status",
+                        "Assigned to",
+                        "Updated",
+                      ].map((label) => (
+                        <th scope="col" key={label} className="px-3 py-3 text-micro font-medium">
+                          {label}
+                        </th>
                       ))}
+                      <th scope="col">
+                        <span className="sr-only">Actions</span>
+                      </th>
                     </tr>
-                  ))}
+                  </thead>
+                  <tbody>
+                    {cases.isLoading &&
+                      Array.from({ length: 8 }).map((_, r) => (
+                        <tr key={r} className="h-20 border-b border-border">
+                          {SKELETON_CELLS.map((w, c) => (
+                            <td key={c} className="px-3">
+                              {w ? <Skeleton className={cn("h-3", w)} /> : null}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    {cases.isError && (
+                      <tr>
+                        <td colSpan={8} className="px-4 py-8 text-center text-destructive">
+                          Could not load tickets. Is the backend running?
+                        </td>
+                      </tr>
+                    )}
+                    {!cases.isLoading && !cases.isError && items.length === 0 && (
+                      <tr>
+                        <td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">
+                          No tickets match the current filters.
+                        </td>
+                      </tr>
+                    )}
+                    {items.map((t) => (
+                      <tr
+                        key={t.id}
+                        className="border-b border-border last:border-0 transition-colors hover:bg-muted/50"
+                      >
+                        <td className="pl-4 py-4">
+                          <PropertyPhoto
+                            photoKey={t.property_photo_key}
+                            className="h-9 w-9 rounded-md"
+                          />
+                        </td>
+                        <td className="px-3 py-4 text-micro text-muted-foreground">
+                          <Link
+                            to="/maintenance/tickets/$ticketId/{-$section}"
+                            params={{ ticketId: t.id, section: undefined }}
+                          >
+                            #{t.case_number}
+                          </Link>
+                        </td>
+                        <td className="px-3 py-4">
+                          <Link
+                            to="/maintenance/tickets/$ticketId/{-$section}"
+                            params={{ ticketId: t.id, section: undefined }}
+                            className="queue-title block font-medium hover:underline"
+                          >
+                            {t.title}
+                          </Link>
+                          <p className="mt-1 text-micro text-muted-foreground">
+                            {t.property_address}
+                          </p>
+                          {t.is_archived && <span className="sample-label">Archival sample</span>}
+                        </td>
+                        <td className="px-3 py-4">
+                          <UrgencyBadge urgency={t.urgency} />
+                        </td>
+                        <td className="px-3 py-4">
+                          <StatusBadge status={t.status} />
+                        </td>
+                        <td className="px-3 py-4 text-micro text-muted-foreground break-words">
+                          {t.assigned_contractor_name ?? "Unassigned"}
+                        </td>
+                        <td className="px-3 py-4 text-micro text-muted-foreground">
+                          {formatRelative(t.updated_at)}
+                        </td>
+                        <td className="px-2 py-4">
+                          <RowActions
+                            caseId={t.id}
+                            caseNumber={t.case_number}
+                            status={t.status}
+                            version={t.version}
+                          />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </Card>
+              <div className="queue-mobile" aria-label="Repair case queue">
+                {cases.isLoading && <SkeletonCards count={4} height="h-44" />}
                 {cases.isError && (
-                  <tr>
-                    <td colSpan={8} className="px-4 py-8 text-center text-destructive">
-                      Could not load tickets. Is the backend running?
-                    </td>
-                  </tr>
+                  <p role="alert" className="py-6 text-destructive">
+                    Could not load tickets. Is the backend running?
+                  </p>
                 )}
                 {!cases.isLoading && !cases.isError && items.length === 0 && (
-                  <tr>
-                    <td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">
-                      No tickets match the current filters.
-                    </td>
-                  </tr>
+                  <p className="py-6 text-muted-foreground">
+                    No tickets match the current filters.
+                  </p>
                 )}
                 {items.map((t) => (
-                  <tr
-                    key={t.id}
-                    className="border-b border-border last:border-0 transition-colors hover:bg-muted/50"
-                  >
-                    <td className="pl-4 py-4">
-                      <PropertyPhoto
-                        photoKey={t.property_photo_key}
-                        className="h-9 w-9 rounded-md"
-                      />
-                    </td>
-                    <td className="px-3 py-4 text-micro text-muted-foreground">
-                      <Link
-                        to="/maintenance/tickets/$ticketId/{-$section}"
-                        params={{ ticketId: t.id, section: undefined }}
-                      >
-                        #{t.case_number}
-                      </Link>
-                    </td>
-                    <td className="px-3 py-4">
-                      <Link
-                        to="/maintenance/tickets/$ticketId/{-$section}"
-                        params={{ ticketId: t.id, section: undefined }}
-                        className="queue-title block font-medium hover:underline"
-                      >
-                        {t.title}
-                      </Link>
-                      <p className="mt-1 text-micro text-muted-foreground">{t.property_address}</p>
-                      {t.is_archived && <span className="sample-label">Archival sample</span>}
-                    </td>
-                    <td className="px-3 py-4">
-                      <UrgencyBadge urgency={t.urgency} />
-                    </td>
-                    <td className="px-3 py-4">
-                      <StatusBadge status={t.status} />
-                    </td>
-                    <td className="px-3 py-4 text-micro text-muted-foreground break-words">
-                      {t.assigned_contractor_name ?? "Unassigned"}
-                    </td>
-                    <td className="px-3 py-4 text-micro text-muted-foreground">
-                      {formatRelative(t.updated_at)}
-                    </td>
-                    <td className="px-2 py-4">
+                  <article key={t.id} className="mobile-case">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-micro text-muted-foreground">
+                        #{t.case_number} · {formatRelative(t.updated_at)}
+                      </span>
                       <RowActions
                         caseId={t.id}
                         caseNumber={t.case_number}
                         status={t.status}
                         version={t.version}
                       />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </Card>
-          <div className="queue-mobile" aria-label="Repair case queue">
-            {cases.isLoading && <SkeletonCards count={4} height="h-44" />}
-            {cases.isError && (
-              <p role="alert" className="py-6 text-destructive">
-                Could not load tickets. Is the backend running?
-              </p>
-            )}
-            {!cases.isLoading && !cases.isError && items.length === 0 && (
-              <p className="py-6 text-muted-foreground">No tickets match the current filters.</p>
-            )}
-            {items.map((t) => (
-              <article key={t.id} className="mobile-case">
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-micro text-muted-foreground">
-                    #{t.case_number} · {formatRelative(t.updated_at)}
-                  </span>
-                  <RowActions
-                    caseId={t.id}
-                    caseNumber={t.case_number}
-                    status={t.status}
-                    version={t.version}
-                  />
-                </div>
-                <Link
-                  to="/maintenance/tickets/$ticketId/{-$section}"
-                  params={{ ticketId: t.id, section: undefined }}
-                  className="mt-2 block text-base font-medium leading-snug hover:underline"
-                >
-                  {t.title}
-                </Link>
-                <p className="mt-2 text-sm text-muted-foreground">{t.property_address}</p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <StatusBadge status={t.status} />
-                  <UrgencyBadge urgency={t.urgency} />
-                  {t.is_archived && <span className="sample-label">Archival sample</span>}
-                </div>
-                <p className="mt-3 text-micro text-muted-foreground">
-                  Assigned to {t.assigned_contractor_name ?? "nobody yet"}
-                </p>
-              </article>
-            ))}
-          </div>
-
-          <aside className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-1">
-            <Card className="p-3.5">
-              <h2 className="text-section font-semibold">Upcoming visits</h2>
-              {upcoming.isLoading && <SkeletonCards className="mt-2" count={3} height="h-[52px]" />}
-              {upcoming.isError && (
-                <p className="mt-3 text-xs text-destructive">Could not load visits.</p>
-              )}
-              {!upcoming.isLoading && !upcoming.isError && visits.length === 0 && (
-                <p className="mt-3 text-xs text-muted-foreground">No upcoming visits scheduled.</p>
-              )}
-              <div className="mt-2 divide-y divide-border">
-                {visits.map((v) => {
-                  const start = new Date(v.start_at);
-                  const month = start
-                    .toLocaleDateString(undefined, { month: "short" })
-                    .toUpperCase();
-                  const day = start.toLocaleDateString(undefined, { day: "2-digit" });
-                  return (
+                    </div>
                     <Link
-                      key={v.appointment_id}
                       to="/maintenance/tickets/$ticketId/{-$section}"
-                      params={{ ticketId: v.case_id, section: undefined }}
-                      className="-mx-1 flex items-center gap-2 rounded-md px-1 py-2 hover:bg-accent/60"
+                      params={{ ticketId: t.id, section: undefined }}
+                      className="mt-2 block text-base font-medium leading-snug hover:underline"
                     >
-                      <div className="flex h-12 w-10 shrink-0 flex-col items-center justify-center rounded-lg border border-border bg-muted">
-                        <span className="text-micro font-semibold">{month}</span>
-                        {/* The last off-scale size in the app: at 16px
-                         * this numeral was larger than the page's own
-                         * h1-adjacent text and the biggest thing in the
-                         * sidebar, for a date the operator reads second.
-                         * text-section keeps the chip legible without
-                         * outranking the contractor name beside it. */}
-                        <span className="text-section font-bold tabular-nums">{day}</span>
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="truncate text-xs font-semibold">{v.contractor_name}</div>
-                        <div className="truncate text-micro text-muted-foreground">
-                          {v.property_address}
-                        </div>
-                        <div className="text-micro text-muted-foreground">
-                          {formatDateRange(v.start_at, v.end_at).time}
-                        </div>
-                      </div>
-                      <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                      {t.title}
                     </Link>
-                  );
-                })}
-              </div>
-            </Card>
-
-            {/* Static marketing tile (not data-backed, deliberately -- see
-             * report) linking to the real Properties list. */}
-            <div className="relative min-h-36 overflow-hidden rounded-xl shadow-card">
-              <img
-                src={houseExterior}
-                alt=""
-                width={912}
-                height={736}
-                className="absolute inset-0 h-full w-full object-cover"
-              />
-              <div className="absolute inset-0 bg-foreground/65" />
-              <div className="relative flex h-full flex-col justify-end p-4 text-primary-foreground">
-                <h2 className="text-section font-semibold">
-                  Keep properties
-                  <br />
-                  in better shape
-                </h2>
-                <p className="mt-1 text-micro opacity-90">
-                  Track history, spot recurring
-                  <br />
-                  issues and plan ahead.
-                </p>
-                <Link
-                  to="/properties"
-                  className="mt-3 inline-flex w-fit items-center gap-1 rounded-lg bg-background/90 px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-background"
-                >
-                  View properties <ChevronRight className="h-3.5 w-3.5" />
-                </Link>
+                    <p className="mt-2 text-sm text-muted-foreground">{t.property_address}</p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <StatusBadge status={t.status} />
+                      <UrgencyBadge urgency={t.urgency} />
+                      {t.is_archived && <span className="sample-label">Archival sample</span>}
+                    </div>
+                    <p className="mt-3 text-micro text-muted-foreground">
+                      Assigned to {t.assigned_contractor_name ?? "nobody yet"}
+                    </p>
+                  </article>
+                ))}
               </div>
             </div>
-          </aside>
-        </div>
+          )}
+        </section>
       </div>
     </AppShell>
   );

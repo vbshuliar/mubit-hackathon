@@ -1,5 +1,26 @@
 # Fixi — complete application state
 
+## 25 October 2026 — Scroll story and operational workspace redesign
+
+Frontend-only redesign preserves the approved opening hero, then explains the
+repair and Mubit learning workflow through six scroll-linked Three.js chapters.
+Short viewports use normal-flow chapter controls; diagram and reduced-motion
+modes remain available. Historical adapter evaluation is labelled as historical
+and below deployment gates; no model or training configuration changed.
+
+Maintenance now defaults to a four-lane board with a portfolio status panel,
+escalation inbox and upcoming visits. The original list view, filters, search,
+case actions, approvals and API contracts remain available. Shared navigation
+uses a scrollable graphite sidebar and satin workspace surfaces.
+
+Validation: TypeScript, changed-file ESLint and production build passed; all 187
+existing frontend unit tests passed. Read-only browser checks covered desktop,
+mobile, short portrait/landscape, chapter navigation, board/list switching and
+status filtering. Independent review findings on sidebar overflow, short-screen
+clipping and visit counts were resolved. No backend code, database records,
+provider settings or paid model calls were changed. Details and tokens are in
+`frontend-fixi/docs/DESIGN.md` and `frontend-fixi/.impeccable/design.json`.
+
 ## 24 October 2026 — Focused training preparation
 
 Prepared49additional training-only report scenarios (seven per outcome), interleaved for balanced small batches. No new paid calls; existing55report examples remain under review. Runner now reports per-category accuracy, confusion matrix including errors, unsafe false completions and explicit teacher-or-unverified serving scope. Expansion cannot be submitted as eval/dev. Original28report evaluation cases unchanged and unsent. Full backend suite457passed before final interleaving test; final focused suite22passed. This is training/evaluation infrastructure, not measured adapter improvement. See docs/MUBIT_REPORT_REVIEW_STATUS.md and ADAPTER_RECOVERY_PLAN.md.
