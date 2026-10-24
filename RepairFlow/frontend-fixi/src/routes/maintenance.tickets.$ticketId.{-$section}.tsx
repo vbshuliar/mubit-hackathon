@@ -197,7 +197,7 @@ function CasePage() {
           {/* One wrapping cluster instead of two stacked rows. The
            * "Record an update" trigger moved in here from its own
            * full-width row below the progress rail. */}
-          <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+          <div className="case-actions flex min-w-0 flex-wrap items-center gap-2">
             {snapshot.agent_active && (
               <span className="flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-body font-medium text-muted-foreground shadow-card">
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -222,7 +222,7 @@ function CasePage() {
         {/* Sticky: the header above is ~300px, so on a long tab the tabs
          * would otherwise scroll out of reach. `-mx-6` lets the border
          * run full-bleed inside the padded container. */}
-        <div className="sticky top-0 z-30 -mx-6 mt-4 border-b border-border bg-background/85 px-6 backdrop-blur xl:-mx-7 xl:px-7">
+        <div className="case-tabs sticky top-0 z-30 -mx-6 mt-4 border-b border-border bg-background/85 px-6 backdrop-blur xl:-mx-7 xl:px-7">
           <div className="flex flex-wrap items-center gap-0.5">
             <SectionLink ticketId={ticketId} section={undefined} active={section === null}>
               Overview

@@ -1,7 +1,7 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Environment, Lightformer, Line, RoundedBox } from "@react-three/drei";
 import { useEffect, useRef, useState } from "react";
-import { MathUtils, Vector3, type Group } from "three";
+import { Vector3 } from "three";
 
 type Props = { stage: number; reducedMotion: boolean; active: boolean };
 const metal = { color: "#b3bec0", metalness: 0.85, roughness: 0.32 };
