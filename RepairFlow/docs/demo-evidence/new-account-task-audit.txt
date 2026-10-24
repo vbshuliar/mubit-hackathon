@@ -1,0 +1,9 @@
+Browser tab: 2, Title: "Task — Middleware console", URL: "https://app.mubit.ai/console/projects/ws-9ea386dc56aefa33/workloads/ln_28b32f28e9d7f4231463494a".
+The following is a diff from the previous accessibility tree with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 146-148, 183-184
++				187 text i
++						188 text i
++						189 text i
++					190 text i
++						191 text i
+The focused UI element is 1 AXWebArea Task — Middleware console, URL: app.mubit.ai/console/projects/ws-9ea386dc56aefa33/workloads/ln_28b32f28e9d7f4231463494a

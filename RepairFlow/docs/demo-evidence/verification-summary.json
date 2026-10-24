@@ -1,0 +1,27 @@
+{
+  "live_run_reservations": 26,
+  "limit": 30,
+  "metric_records": 26,
+  "input_tokens_reported": 700063,
+  "output_tokens_reported": 18792,
+  "elapsed_ms_median": 7364.5,
+  "note": "Token totals omit usage not returned on failed calls; not a billing total. Local validated_proposal means output validation, not action execution or Mubit kept-example acceptance.",
+  "original_rows_unchanged": 2474,
+  "original_files_unchanged": 15,
+  "sqlite_integrity": "ok",
+  "foreign_key_violations": 0,
+  "backend_tests_passed": 304,
+  "mubit_main_task": {
+    "waiting_review": 111,
+    "kept": 0,
+    "rejected": 0,
+    "review_running": 7,
+    "training": "not_started",
+    "adapters": 0
+  },
+  "frontend_tests_passed": 158,
+  "frontend_build": "passed",
+  "typescript": "passed",
+  "eslint_errors": 0,
+  "eslint_existing_warnings": 5
+}
