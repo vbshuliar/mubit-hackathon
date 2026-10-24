@@ -1,0 +1,7 @@
+RepairFlow archival record
+Case: Boiler losing pressure overnight
+Property: 3 Riverdale Road, Exeter
+Category: PLUMBING
+Closed: 2022-03-03
+
+This is a synthetic sample document created for demo history illustration. It is not a real invoice, quote, or piece of correspondence.
