@@ -121,16 +121,16 @@
 
   /* Type scale. Seven steps, replacing seventeen ad-hoc sizes.
    * 11px is a hard floor -- the app previously used 8px, 9px and 9.5px. */
-  --text-micro: 0.6875rem; /* 11 -- badges, timestamps */
+  --text-micro: 0.75rem; /* 11 -- badges, timestamps */
   --text-micro--line-height: 1rem;
-  --text-body: 0.75rem; /* 12 -- table body */
-  --text-body--line-height: 1.125rem;
-  --text-strong: 0.8125rem; /* 13 -- row titles */
-  --text-strong--line-height: 1.25rem;
-  --text-section: 0.9375rem; /* 15 -- card headings */
+  --text-body: 0.875rem; /* 12 -- table body */
+  --text-body--line-height: 1.4rem;
+  --text-strong: 0.9375rem; /* 13 -- row titles */
+  --text-strong--line-height: 1.5rem;
+  --text-section: 1.0625rem; /* 15 -- card headings */
   --text-section--line-height: 1.375rem;
-  --text-title: 1.25rem; /* 20 -- page h1 */
-  --text-title--line-height: 1.75rem;
+  --text-title: 1.75rem; /* 20 -- page h1 */
+  --text-title--line-height: 2.125rem;
   --text-metric: 1.625rem; /* 26 -- KPI values */
   --text-metric--line-height: 1.875rem;
 
@@ -312,8 +312,8 @@ html:active-view-transition-type(back)::view-transition-old(page-content) {
 
 :root {
   --radius: 0.75rem;
-  --background: oklch(0.982 0.004 230);
-  --foreground: oklch(0.21 0.034 264.7);
+  --background: oklch(0.965 0.004 240);
+  --foreground: oklch(0.25 0.014 250);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.21 0.034 264.7);
   --popover: oklch(1 0 0);
@@ -324,26 +324,26 @@ html:active-view-transition-type(back)::view-transition-old(page-content) {
   --secondary: oklch(0.955 0.006 250);
   --secondary-foreground: oklch(0.3 0.03 264);
   --muted: oklch(0.965 0.005 250);
-  --muted-foreground: oklch(0.55 0.02 260);
+  --muted-foreground: oklch(0.48 0.018 250);
   --accent: oklch(0.955 0.006 250);
   --accent-foreground: oklch(0.21 0.034 264.7);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(0.925 0.008 255);
-  --input: oklch(0.925 0.008 255);
+  --border: oklch(0.87 0.009 250);
+  --input: oklch(0.8 0.012 250);
   --ring: oklch(0.49 0.1 162);
   --chart-1: oklch(0.49 0.1 162);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0.002 250);
-  --sidebar-foreground: oklch(0.3 0.03 264);
+  --sidebar: oklch(0.235 0.012 250);
+  --sidebar-foreground: oklch(0.85 0.008 250);
   --sidebar-primary: oklch(0.39 0.08 163);
   --sidebar-primary-foreground: oklch(0.99 0.005 160);
-  --sidebar-accent: oklch(0.955 0.006 250);
+  --sidebar-accent: oklch(0.32 0.015 250);
   --sidebar-accent-foreground: oklch(0.21 0.034 264.7);
-  --sidebar-border: oklch(0.925 0.008 255);
+  --sidebar-border: oklch(0.37 0.012 250);
   --sidebar-ring: oklch(0.49 0.1 162);
 
   --status-red: oklch(0.95 0.03 20);
@@ -378,5 +378,161 @@ html:active-view-transition-type(back)::view-transition-old(page-content) {
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+  }
+}
+
+/* Titanium workspace: opaque working surfaces; glass only on floating chrome. */
+:root {
+  --surface-satin: oklch(0.95 0.005 240);
+  --surface-glass: oklch(1 0 0 / 0.84);
+  --space-gutter: clamp(1rem, 2.3vw, 2rem);
+  --shadow-floating: 0 16px 48px -16px oklch(0.2 0.015 240 / 0.25);
+}
+body {
+  font-family: var(--font-sans);
+}
+button,
+a,
+input,
+select,
+textarea,
+summary {
+  -webkit-tap-highlight-color: transparent;
+}
+button:not(:disabled),
+summary {
+  cursor: pointer;
+}
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 4px;
+}
+::selection {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+input,
+textarea {
+  caret-color: var(--primary);
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+a {
+  text-underline-offset: 3px;
+}
+.skip-link {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 1000;
+  transform: translateY(-200%);
+  background: var(--card);
+  color: var(--foreground);
+  padding: 12px 18px;
+  border-radius: 8px;
+}
+.skip-link:focus {
+  transform: none;
+}
+.fixi-sidebar {
+  color: var(--sidebar-foreground);
+  background: linear-gradient(155deg, oklch(0.28 0.013 240), var(--sidebar) 65%);
+}
+.fixi-sidebar .text-foreground {
+  color: oklch(0.96 0.004 240);
+}
+.fixi-sidebar .text-muted-foreground {
+  color: oklch(0.75 0.01 240);
+}
+.fixi-sidebar .bg-card {
+  background: oklch(0.29 0.014 240);
+}
+.fixi-sidebar .bg-primary-soft {
+  background: oklch(0.37 0.035 165);
+  color: oklch(0.85 0.09 165);
+}
+.nav-group {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  font-weight: 500;
+  color: oklch(0.68 0.012 240);
+  padding: 14px 12px 9px;
+}
+.preview-return {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12px;
+  padding: 18px 12px;
+  color: oklch(0.76 0.01 240);
+  margin-top: 15px;
+  border-top: 1px solid var(--sidebar-border);
+}
+.preview-return:hover {
+  color: white;
+}
+.fixi-app .app-utility {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 10px;
+  background: var(--surface-glass);
+}
+.fixi-app .text-xs {
+  font-size: 0.875rem;
+  line-height: 1.4rem;
+}
+.fixi-app .text-micro {
+  font-size: 0.75rem;
+  line-height: 1.15rem;
+}
+.fixi-app .rounded-xl {
+  border-radius: 12px;
+}
+.fixi-app main > [id="main-content"] {
+  outline: none;
+}
+[data-radix-popper-content-wrapper] {
+  --shadow-panel: var(--shadow-floating);
+}
+[role="dialog"],
+[role="alertdialog"],
+[role="menu"],
+[role="listbox"] {
+  font-size: 14px;
+}
+[role="dialog"] input,
+[role="dialog"] textarea,
+[role="dialog"] select {
+  font-size: 14px;
+}
+.react-flow {
+  --xy-node-border-radius: 10px;
+  --xy-controls-box-shadow: var(--shadow-floating);
+  font-family: var(--font-sans);
+}
+.react-flow__node.selected {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+  border-radius: 10px;
+}
+.react-flow__node {
+  font-size: 14px;
+}
+@media (max-width: 640px) {
+  .fixi-app main > .app-utility {
+    padding: 12px 16px;
+  }
+  .fixi-app #main-content > div {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .fixi-app .text-title {
+    font-size: 1.5rem;
+    line-height: 1.9rem;
+  }
+  .fixi-app .app-utility > div {
+    flex-wrap: wrap;
+    justify-content: start;
   }
 }

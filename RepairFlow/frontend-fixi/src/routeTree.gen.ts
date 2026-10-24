@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as OverviewRouteImport } from './routes/overview'
 import { Route as ContractorsIndexRouteImport } from './routes/contractors.index'
 import { Route as ContractorsContractorIdRouteImport } from './routes/contractors.$contractorId'
 import { Route as InsightsIndexRouteImport } from './routes/insights.index'
@@ -30,6 +31,11 @@ import { Route as MaintenanceTicketsTicketIdChar123SectionChar125RouteImport } f
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OverviewRoute = OverviewRouteImport.update({
+  id: '/overview',
+  path: '/overview',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContractorsIndexRoute = ContractorsIndexRouteImport.update({
@@ -121,6 +127,7 @@ const MaintenanceTicketsTicketIdChar123SectionChar125Route =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/overview': typeof OverviewRoute
   '/contractors/$contractorId': typeof ContractorsContractorIdRoute
   '/messages/$caseId': typeof MessagesCaseIdRoute
   '/tenants/$tenantId': typeof TenantsTenantIdRoute
@@ -140,6 +147,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/overview': typeof OverviewRoute
   '/contractors/$contractorId': typeof ContractorsContractorIdRoute
   '/messages/$caseId': typeof MessagesCaseIdRoute
   '/tenants/$tenantId': typeof TenantsTenantIdRoute
@@ -160,6 +168,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/overview': typeof OverviewRoute
   '/contractors/$contractorId': typeof ContractorsContractorIdRoute
   '/messages/$caseId': typeof MessagesCaseIdRoute
   '/tenants/$tenantId': typeof TenantsTenantIdRoute
@@ -181,6 +190,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/overview'
     | '/contractors/$contractorId'
     | '/messages/$caseId'
     | '/tenants/$tenantId'
@@ -200,6 +210,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/overview'
     | '/contractors/$contractorId'
     | '/messages/$caseId'
     | '/tenants/$tenantId'
@@ -219,6 +230,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/overview'
     | '/contractors/$contractorId'
     | '/messages/$caseId'
     | '/tenants/$tenantId'
@@ -239,6 +251,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  OverviewRoute: typeof OverviewRoute
   ContractorsContractorIdRoute: typeof ContractorsContractorIdRoute
   MessagesCaseIdRoute: typeof MessagesCaseIdRoute
   TenantsTenantIdRoute: typeof TenantsTenantIdRoute
@@ -264,6 +277,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/overview': {
+      id: '/overview'
+      path: '/overview'
+      fullPath: '/overview'
+      preLoaderRoute: typeof OverviewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contractors/': {
@@ -383,6 +403,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  OverviewRoute: OverviewRoute,
   ContractorsContractorIdRoute: ContractorsContractorIdRoute,
   MessagesCaseIdRoute: MessagesCaseIdRoute,
   TenantsTenantIdRoute: TenantsTenantIdRoute,
