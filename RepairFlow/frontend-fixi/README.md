@@ -17,8 +17,6 @@ npm run test:browser
 npm run build
 ```
 
-Browser tests use synthetic intercepted API responses and Chrome; they never send mutations to a backend. `npm run capture:redesign` captures the existing local workspace with write requests blocked.
+Browser tests use synthetic intercepted API responses and Chrome; they never send mutations to a backend.
 
 The roof/scaffolding Three.js illustration loads lazily, has direct HTML stage controls, supports reduced motion and a static fallback, and never changes real case state.
-
-[Design notes](docs/DESIGN.md) · [Verification and limitations](docs/REDESIGN_VERIFICATION.md) · [Desktop/mobile screenshots](artifacts/redesign/README.md)
