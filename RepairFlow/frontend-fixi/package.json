@@ -10,7 +10,10 @@
     "preview": "vite preview",
     "test": "vitest run",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "typecheck": "tsc --noEmit",
+    "test:browser": "playwright test",
+    "capture:redesign": "node scripts/capture-redesign.mjs"
   },
   "overrides": {
     "rolldown": "1.2.1"

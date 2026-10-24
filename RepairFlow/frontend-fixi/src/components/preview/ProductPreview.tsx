@@ -102,8 +102,7 @@ export function ProductPreview() {
           <section className="preview-hero">
             <div className="hero-copy">
               <h1>
-                From reported
-                <br />
+                From reported <br />
                 to <em>resolved.</em>
               </h1>
               <p>
@@ -299,13 +298,16 @@ export function ProductPreview() {
               </div>
             </div>
             <figure className="workspace-capture">
-              <img
-                src="/preview/maintenance-desktop.png"
-                width="1440"
-                height="1000"
-                loading="lazy"
-                alt="Fixi Maintenance workspace with grouped navigation, readable repair titles, status filters and a case queue."
-              />
+              <picture>
+                <source media="(max-width: 600px)" srcSet="/preview/maintenance-mobile.png" />
+                <img
+                  src="/preview/maintenance-desktop.png"
+                  width="1440"
+                  height="1000"
+                  loading="lazy"
+                  alt="Fixi Maintenance workspace with grouped navigation, readable repair titles, status filters and a case queue."
+                />
+              </picture>
               <figcaption>
                 Product preview · captured from the demo workspace. Sample and simulated records
                 retain their labels.

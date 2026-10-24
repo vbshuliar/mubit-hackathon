@@ -678,8 +678,8 @@
     overflow-x: auto;
   }
   .workspace-capture img {
-    width: 780px;
-    max-width: none;
+    width: 100%;
+    max-width: 100%;
   }
   .workspace-capture figcaption {
     font-size: 11px;

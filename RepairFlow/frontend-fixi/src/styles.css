@@ -349,13 +349,13 @@ html:active-view-transition-type(back)::view-transition-old(page-content) {
   --status-red: oklch(0.95 0.03 20);
   --status-red-foreground: oklch(0.5 0.18 25);
   --status-orange: oklch(0.96 0.04 70);
-  --status-orange-foreground: oklch(0.55 0.15 55);
+  --status-orange-foreground: oklch(0.48 0.13 55);
   --status-green: oklch(0.95 0.04 155);
   --status-green-foreground: oklch(0.45 0.11 155);
   --status-blue: oklch(0.95 0.03 250);
   --status-blue-foreground: oklch(0.5 0.17 258);
   --status-amber: oklch(0.96 0.05 85);
-  --status-amber-foreground: oklch(0.55 0.13 70);
+  --status-amber-foreground: oklch(0.48 0.11 70);
   --status-purple: oklch(0.955 0.03 300);
   --status-purple-foreground: oklch(0.5 0.17 300);
   --status-gray: oklch(0.955 0.005 250);
@@ -713,5 +713,52 @@ a {
   }
   .portfolio-strip > a {
     padding: 12px;
+  }
+}
+@media (max-width: 640px) {
+  .case-actions {
+    width: 100%;
+  }
+  .case-actions > div {
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+  .case-tabs {
+    margin-left: -16px;
+    margin-right: -16px;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .case-progress ol {
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+    align-items: stretch;
+    padding: 4px 0;
+  }
+  .case-progress ol li {
+    display: grid;
+    grid-template-columns: 22px minmax(0, 1fr);
+    column-gap: 12px;
+    text-align: left;
+    align-items: center;
+    justify-items: start;
+    flex: auto;
+  }
+  .case-progress ol li > span.absolute {
+    width: 1px;
+    height: calc(100% + 13px);
+    left: 13px;
+    top: 10px;
+  }
+  .case-progress ol li > div {
+    margin-top: 0;
+  }
+  .case-progress ol li > div:last-child:not(:nth-child(2)) {
+    grid-column: 2;
+    max-width: none;
+  }
+  .case-progress ol li > span.relative {
+    grid-row: 1;
   }
 }
