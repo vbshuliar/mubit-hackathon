@@ -19,7 +19,7 @@ import { formatRelative } from "@/lib/format";
  * instead. */
 export function UtilityBar({ onOpenMenu }: { onOpenMenu: () => void }) {
   return (
-    <div className="flex items-center justify-end gap-2.5 py-2">
+    <div className="utility-controls flex items-center justify-end gap-2.5 py-2">
       <button
         type="button"
         onClick={onOpenMenu}
@@ -152,7 +152,7 @@ function GlobalSearch() {
   return (
     <Popover.Root open={open}>
       <Popover.Anchor asChild>
-        <label className="flex h-9 w-[340px] max-w-[42vw] items-center gap-2 rounded-xl border border-border bg-card px-3 text-muted-foreground shadow-card">
+        <label className="global-search flex h-10 w-[420px] max-w-full items-center gap-2 rounded-xl border border-border bg-card px-3 text-muted-foreground shadow-card">
           <Search className="h-4 w-4 shrink-0" />
           <input
             aria-label="Search"
