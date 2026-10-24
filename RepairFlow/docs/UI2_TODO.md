@@ -1,0 +1,151 @@
+# Follow-up work queue
+
+Actionable items, highest priority first. The full honest inventory of
+what is not done lives in `docs/UI2_IMPLEMENTATION_HANDOFF.md` §7 — this
+file is the subset somebody has decided to actually do, with enough
+detail to start without re-investigating.
+
+Status: `TODO` · `IN PROGRESS` · `DONE`
+
+---
+
+## 1. Category donut renders a meaningless 100% wedge — `DONE` (2026-09-20)
+
+**Symptom.** On `backend/data/repairflow.db` (14 real cases, none
+categorised) the Insights category donut shows a single unlabelled
+segment: `{category: null, count: 10, percentage: 100}`. The legend row
+reads blank, and its colour dot has no class at all.
+
+**Where it goes wrong — the frontend, not the API.** The backend is
+behaving as designed and documents why: `analytics.category_breakdown`
+deliberately keeps `category=None` as its own group so the percentages
+describe the whole matched case set rather than a silently-filtered
+subset. That is the right call. The bug is that the UI casts the null
+straight to a `Trade`:
+
+- `frontend-fixi/src/hooks/use-analytics.ts` — `trade: row.category as Trade`
+  (two places: `category_breakdown` and `recurring_issues`). A lying cast;
+  the value really is nullable.
+- `frontend-fixi/src/components/fixi/Charts.tsx` — `titleCase(d.trade)`
+  on null yields an empty label, and `TRADE_DOT_CLASS[TRADE_TONE[d.trade]]`
+  is `undefined`, so the legend dot renders unstyled.
+
+**Fix.**
+1. Type it honestly: `trade: Trade | null` in `CategoryBreakdownItem`.
+2. In `Charts.tsx`, render a null category as **"Uncategorised"** in the
+   gray tone — it is a real and useful fact that N cases have not been
+   triaged, so it should be legible, not hidden.
+3. When the **only** group is the null one, show the existing empty state
+   ("No categorised cases in the selected range") instead of a 100% wedge.
+   A donut of one slice conveys nothing.
+
+**Note on `recurring_issues`:** `analytics.recurring_issues` already
+excludes `category IS NULL` explicitly — "recurring category is
+meaningless without one" — so that one is correct and needs no change.
+The same lying cast is present in the hook and should still be removed.
+
+**Verify.** With no categories set, Insights must show the empty state.
+With a mix, "Uncategorised" appears as a normal labelled segment and the
+percentages still sum to exactly 100.
+
+---
+
+## 2. Backfill `repair_cases.category` from work-order trade — `DONE` (2026-09-20)
+
+**Why.** `category` is a new column and is NULL on all 14 existing cases,
+which is what empties the donut and the recurrence grouping. Every one of
+those cases already has work orders carrying a real `Trade`.
+
+**Decision taken (2026-09-20):** derive the backfill from work-order
+trade. Confirmed by the repository owner.
+
+**Rule to implement.** For each case where `category IS NULL`:
+- exactly one distinct work-order trade → set `category` to it;
+- several distinct trades → use the trade of the work order with
+  `required_for_resolution = true`, falling back to the **earliest**
+  work order by `created_at`. A case's category is meant to be what the
+  issue *is*, and the first-raised required work order is the closest
+  honest proxy for that;
+- no work orders at all → **leave NULL.** There is nothing to derive it
+  from, and guessing would put a fabricated classification into every
+  count, donut segment and recurrence group that reads this column.
+
+**Shape.** A one-shot, idempotent, additive command —
+`python -m app.backfill_category --dry-run | --apply` — alongside
+`app.legacy_demo_purge`, not a migration step. It must never overwrite a
+`category` that is already set, and must print what it changed.
+
+**Watch out for:** `RepairCaseModel.category` is a `Trade` enum column
+and the derivation reads `WorkOrderModel.trade`, also a `Trade` — no
+mapping table needed. Do not touch archival cases: the archive sets its
+own categories deliberately, and rewriting them would desynchronise the
+dataset from its own validation checks.
+
+**Verify.** On a *copy* of `backend/data/repairflow.db` (never the
+original — see the handoff): `--dry-run` reports the intended change per
+case; after `--apply`, the Insights donut shows real trade segments, the
+recurrence grouping produces at least one group, and re-running reports
+zero changes.
+
+---
+
+## 3. The Research drawer has never been built — `TODO`
+
+> **Reference implementation, 2026-09-21.** The retired `frontend/` tree
+> was deleted in the repo cleanup, and it contained the only existing
+> version of this drawer. It is not lost — recover it with:
+>
+> ```
+> git show bd61137:frontend/src/components/ResearchDrawer.tsx
+> git show bd61137:frontend/src/components/EvidenceDrawer.tsx
+> ```
+>
+> Treat it as a shape to copy, not code to paste: it was written against
+> the old flat component tree and the pre-migration API.
+
+`docs/18_FRONTEND_UX.md` lists it as a **required region** of the case
+workspace: *"Actual Tavily query/time/request ID/sources; unverified
+candidates separate from approved suppliers."*
+
+Nothing renders it. `GET /api/v1/research/{research_id}` exists and has
+**zero callers** in the frontend — no `fetchResearch`, no Research tab,
+no drawer. Worse, `ResearchSnapshot` and its `candidates` are not on
+`CaseSnapshot` either, so even with a drawer there is no id to reach it
+with: you would have to know the research UUID and curl it.
+
+**Why it matters beyond the missing screen.** CLAUDE.md: *"A candidate
+from the web is not an approved contractor."* The Contractors directory
+enforces that distinction globally, but per-case research candidates —
+the actual output of a `DISCOVER_CONTRACTORS` action — are invisible. An
+operator cannot see what the agent found, what it searched for, or which
+of those suppliers are unverified.
+
+**Backend first.** `CaseSnapshot` needs the latest research snapshot's
+id (and ideally its candidate count) so the UI has something to link.
+Follow how `latest_reports` is already exposed. Do not inline the whole
+snapshot — it can be large, and the drawer fetches it on open.
+
+**Then the drawer.** A tenth tab on the ticket page, or a drawer off the
+Work tab. It must show: the literal query sent to Tavily, when, the
+request id, each source with its URL, and the candidate list —
+**visually separated from approved contractors**, with each candidate
+marked unverified and offering no assignment action. Provenance badge as
+elsewhere.
+
+**Verify.** Drive a case to a `DISCOVER_CONTRACTORS` action with the
+fixture research adapter, then confirm the drawer shows the real query
+and sources, and that no candidate can be assigned to a work order from
+it.
+
+---
+
+## Not queued — needs a decision first
+
+**Insights and Reports spend read `cost_entries`; property stats read
+`work_orders.quote_pence`.** Two different money sources that disagree on
+the same property (£200.00 on one screen, £0.00 on the other), which also
+contradicts the handoff's claim that `analytics.py` is the single source
+of every metric. Making Insights fall back to work-order quotes would
+surface existing data but double-count as soon as real cost entries are
+recorded — unless the fallback is per-case rather than global. Left open
+deliberately: this is a definition question, not a bug to patch.
