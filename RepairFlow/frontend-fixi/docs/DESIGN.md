@@ -54,58 +54,58 @@ colors:
   search-surface: "oklch(0.94 0.008 220)"
 typography:
   display:
-    fontFamily: "\"Inter\", sans-serif"
+    fontFamily: '"Inter", sans-serif'
     fontSize: "clamp(56px, 6.8vw, 96px)"
     fontWeight: 500
     lineHeight: 1.02
     letterSpacing: "-0.04em"
   headline-workflow:
-    fontFamily: "\"Inter\", sans-serif"
+    fontFamily: '"Inter", sans-serif'
     fontSize: "clamp(36px, 4.35vw, 66px)"
     fontWeight: 500
     lineHeight: 1.08
     letterSpacing: "-0.04em"
   title-operations:
-    fontFamily: "\"Inter\", ui-sans-serif, system-ui, sans-serif"
+    fontFamily: '"Inter", ui-sans-serif, system-ui, sans-serif'
     fontSize: "32px"
     fontWeight: 500
     lineHeight: 1.2
     letterSpacing: "-0.04em"
   title-board:
-    fontFamily: "\"Inter\", ui-sans-serif, system-ui, sans-serif"
+    fontFamily: '"Inter", ui-sans-serif, system-ui, sans-serif'
     fontSize: "13px"
     fontWeight: 500
     lineHeight: 1.5
   body:
-    fontFamily: "\"Inter\", ui-sans-serif, system-ui, sans-serif"
+    fontFamily: '"Inter", ui-sans-serif, system-ui, sans-serif'
     fontSize: "0.875rem"
     lineHeight: "1.4rem"
   body-workflow:
-    fontFamily: "\"Inter\", sans-serif"
+    fontFamily: '"Inter", sans-serif'
     fontSize: "16px"
     lineHeight: 1.8
   label-board:
-    fontFamily: "\"Inter\", ui-sans-serif, system-ui, sans-serif"
+    fontFamily: '"Inter", ui-sans-serif, system-ui, sans-serif'
     fontSize: "10px"
     lineHeight: 1.5
   label-nav:
-    fontFamily: "\"Inter\", ui-sans-serif, system-ui, sans-serif"
+    fontFamily: '"Inter", ui-sans-serif, system-ui, sans-serif'
     fontSize: "10px"
     fontWeight: 500
     letterSpacing: "0.1em"
   metric-portfolio:
-    fontFamily: "\"Inter\", ui-sans-serif, system-ui, sans-serif"
+    fontFamily: '"Inter", ui-sans-serif, system-ui, sans-serif'
     fontSize: "29px"
     fontWeight: 400
     lineHeight: 1.1
     letterSpacing: "-0.03em"
   button:
-    fontFamily: "\"Inter\", ui-sans-serif, system-ui, sans-serif"
+    fontFamily: '"Inter", ui-sans-serif, system-ui, sans-serif'
     fontSize: "14px"
     fontWeight: 600
     lineHeight: "1.4rem"
   button-preview:
-    fontFamily: "\"Inter\", sans-serif"
+    fontFamily: '"Inter", sans-serif'
     fontSize: "14px"
     fontWeight: 600
 rounded:
@@ -211,6 +211,7 @@ The approved graphite-and-mint hero remains the visual anchor. The system pairs 
 Working information stays legible on pale cards with a compact hierarchy. The portfolio panel, attention inbox and visit rail establish the scan order above the repair board. Materials support the relationship between evidence, decisions and outcomes without changing the meaning of operational states.
 
 **Key Characteristics:**
+
 - Preserved graphite-and-mint hero with silver calls to action.
 - Satin workspace, graphite navigation and opaque case cards.
 - Compact operational hierarchy with explicit state labels.
@@ -346,3 +347,28 @@ The Evaluate evidence is a dated local historical record from 24 October: the Qw
 - **Don't** convert the compact dashboard into a universal typography rule for all surfaces.
 - **Don't** describe the candidate adapter as ready, deployed or independently benchmarked on the strength of the historical internal evaluation.
 - **Don't** add animation that blocks page scrolling or hides chapter controls on short screens.
+
+## UI cleanup — 25 October 2026
+
+Property History uses a fixed 1180px minimum table with narrow selection/navigation
+columns, a 22% issue column, an 18% outcome column and right-aligned quotes. Two-line
+previews open an inline, keyboard-operable full-record row; CSV exports retain the
+original complete values. On smaller screens a labelled, focusable scroll region
+contains the table. Full details stay within the reading viewport. Simulation
+provenance remains visible when contractor names are clamped.
+
+One labelled Trade/Year filter area replaces the repeated chart-adjacent chips.
+Options come from the loaded history. TanStack Router owns filter/sort URL updates,
+retains unrelated search values and restores state on back/forward. Search-only
+updates do not animate the page or reset scrolling.
+
+Shared cards can shrink within grids. Page actions wrap; property tabs use concise
+labels; mobile property and tenant details wrap their content. Recent activity has
+a keyboard-scrollable 640px reading area and no longer stretches the adjacent empty
+appointments panel. Homepage art direction and the Maintenance board are unchanged.
+The non-interactive workflow canvas wrapper ignores pointer events so its diagram
+fallback cannot intercept chapter controls.
+
+Maintenance's “In focus” values come from the existing dashboard-metrics hook and
+its five-second polling: active, awaiting_confirmation, resolved_this_week and
+total. They describe the portfolio, independently of the filtered/limited queue.

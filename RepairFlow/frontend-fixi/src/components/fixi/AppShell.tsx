@@ -334,7 +334,9 @@ export function PageContainer({
             <p className="mt-1 max-w-prose-fixi text-strong text-muted-foreground">{description}</p>
           ) : null}
         </div>
-        {actions ? <div className="flex shrink-0 items-center gap-2">{actions}</div> : null}
+        {actions ? (
+          <div className="flex min-w-0 flex-wrap items-center gap-2">{actions}</div>
+        ) : null}
       </div>
       <div className="mt-6">{children}</div>
     </div>
@@ -343,7 +345,7 @@ export function PageContainer({
 
 export function Card({ className, children }: { className?: string; children: React.ReactNode }) {
   return (
-    <div className={cn("rounded-xl border border-border bg-card shadow-card", className)}>
+    <div className={cn("min-w-0 rounded-xl border border-border bg-card shadow-card", className)}>
       {children}
     </div>
   );

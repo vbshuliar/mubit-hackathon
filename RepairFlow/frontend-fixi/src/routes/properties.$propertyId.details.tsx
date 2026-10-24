@@ -163,9 +163,9 @@ function DetailsPage() {
                         <Link
                           to="/maintenance/tickets/$ticketId/{-$section}"
                           params={{ ticketId: c.case_id, section: undefined }}
-                          className="flex items-center justify-between gap-2 text-xs hover:underline"
+                          className="flex flex-col items-start gap-1.5 text-strong hover:underline"
                         >
-                          <span className="min-w-0 flex-1 truncate font-medium">{c.title}</span>
+                          <span className="min-w-0 font-medium">{c.title}</span>
                           <Pill tone={statusTone(c.status)}>
                             {STATUS_LABEL[c.status] ?? c.status}
                           </Pill>
@@ -185,9 +185,9 @@ function DetailsPage() {
 
 function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="flex items-start justify-between gap-4 py-2 text-strong">
+    <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] items-start gap-4 py-2 text-strong">
       <span className="shrink-0 text-muted-foreground">{label}</span>
-      <span className="text-right font-medium">{value}</span>
+      <span className="break-words text-right font-medium">{value}</span>
     </div>
   );
 }

@@ -87,6 +87,7 @@
   background: radial-gradient(ellipse at 50% 40%, oklch(0.32 0.022 175 / 0.55), transparent 64%);
 }
 .workflow-canvas {
+  pointer-events: none;
   position: absolute;
   inset: -25px -25px 30px;
 }
