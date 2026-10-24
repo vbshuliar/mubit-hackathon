@@ -46,7 +46,6 @@ const SKELETON_CELLS: readonly (string | null)[] = [
   null,
   "w-6",
   "w-4/5",
-  "w-32",
   "w-14",
   "w-24",
   "w-28",
@@ -231,9 +230,9 @@ function MaintenancePage() {
         {kpis.length === 0 ? (
           <SkeletonKpis className="mt-4" />
         ) : (
-          <section className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+          <section className="queue-metrics mt-6">
             {kpis.map((k) => (
-              <Card key={k.key} className="flex min-h-[72px] items-center gap-3 px-4 py-3">
+              <Card key={k.key} className="queue-metric flex items-start gap-3 px-4 py-3">
                 <span
                   className={cn(
                     "flex h-9 w-9 shrink-0 items-center justify-center rounded-full",
@@ -246,7 +245,7 @@ function MaintenancePage() {
                   <div className="text-metric font-bold tracking-tight">
                     <Metric value={k.value} />
                   </div>
-                  <div className="truncate text-body text-muted-foreground">{k.label}</div>
+                  <div className="text-body text-muted-foreground">{k.label}</div>
                   {k.delta && (
                     <div
                       className={cn(
@@ -269,9 +268,10 @@ function MaintenancePage() {
             {statusFilters.map((f) => (
               <button
                 key={f.value}
+                aria-pressed={statusFilter === f.value}
                 onClick={() => setStatusFilter(f.value)}
                 className={cn(
-                  "h-8 rounded-lg border px-3 text-xs font-medium transition-colors",
+                  "min-h-9 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors",
                   statusFilter === f.value
                     ? "border-foreground bg-foreground text-background"
                     : "border-border bg-card text-foreground hover:bg-accent",
@@ -281,83 +281,104 @@ function MaintenancePage() {
               </button>
             ))}
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <FilterDropdown
-              value={urgencyFilter}
-              onChange={setUrgencyFilter}
-              allLabel="All urgencies"
-              options={URGENCIES.map((u) => ({ value: u, label: URGENCY_LABEL[u] }))}
-            />
-            <FilterDropdown
-              value={propertyFilter}
-              onChange={setPropertyFilter}
-              allLabel="All properties"
-              options={(properties.data?.items ?? []).map((p) => ({
-                value: p.id,
-                label: p.address_line,
-              }))}
-            />
-            <FilterDropdown
-              value={contractorFilter}
-              onChange={setContractorFilter}
-              allLabel="All contractors"
-              options={contractorOptions.map((name) => ({ value: name, label: name }))}
-            />
-            <label className="flex h-9 items-center gap-2 rounded-lg border border-border bg-card px-3 text-xs font-medium text-foreground hover:bg-accent">
-              <input
-                type="checkbox"
-                className="accent-primary"
-                checked={includeArchived}
-                aria-label="Include archival sample history"
-                onChange={(e) => setIncludeArchived(e.target.checked)}
+          <details className="advanced-filters w-full">
+            <summary>
+              Advanced filters
+              {urgencyFilter !== "ALL" ||
+              propertyFilter !== "ALL" ||
+              contractorFilter !== "ALL" ||
+              includeArchived
+                ? " · filters applied"
+                : ""}
+            </summary>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <FilterDropdown
+                value={urgencyFilter}
+                onChange={setUrgencyFilter}
+                allLabel="All urgencies"
+                options={URGENCIES.map((u) => ({ value: u, label: URGENCY_LABEL[u] }))}
               />
-              Include archival sample history
-            </label>
-          </div>
+              <FilterDropdown
+                value={propertyFilter}
+                onChange={setPropertyFilter}
+                allLabel="All properties"
+                options={(properties.data?.items ?? []).map((p) => ({
+                  value: p.id,
+                  label: p.address_line,
+                }))}
+              />
+              <FilterDropdown
+                value={contractorFilter}
+                onChange={setContractorFilter}
+                allLabel="All contractors"
+                options={contractorOptions.map((name) => ({ value: name, label: name }))}
+              />
+              <label className="flex h-9 items-center gap-2 rounded-lg border border-border bg-card px-3 text-xs font-medium text-foreground hover:bg-accent">
+                <input
+                  type="checkbox"
+                  className="accent-primary"
+                  checked={includeArchived}
+                  aria-label="Include archival sample history"
+                  onChange={(e) => setIncludeArchived(e.target.checked)}
+                />
+                Include archival sample history
+              </label>
+            </div>
+            <p className="mt-3 text-micro text-muted-foreground">
+              Urgency and contractor filters apply to the loaded results. Archival sample history
+              loads up to 100 records.
+            </p>
+          </details>
         </section>
 
-        <div className="mt-4 grid items-start gap-4 2xl:grid-cols-[minmax(0,1fr)_270px]">
-          <Card className="overflow-x-auto">
-            {/* An explicit column budget, not auto layout. Auto layout
-             * distributed width in proportion to content, which meant the
-             * Issue title -- the only column anyone actually reads -- was
-             * the one capped at 320px and truncating, while Address and
-             * "Assigned to" wrapped to two lines and Status took 150px for
-             * one pill. Row heights varied 44-54px as a result. Fixed
-             * tracks let Issue absorb all the slack (docs/27). */}
-            <table className="w-full min-w-[860px] table-fixed text-body">
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-section font-semibold">Case queue</h2>
+          <p className="text-micro text-muted-foreground">
+            {cases.isLoading
+              ? "Loading cases…"
+              : cases.isError
+                ? "Queue unavailable"
+                : `${items.length} loaded case${items.length === 1 ? "" : "s"}`}
+            {cases.data?.next_cursor ? " · more results available through search and filters" : ""}
+          </p>
+        </div>
+        <div className="mt-3 grid items-start gap-5">
+          <Card className="queue-desktop overflow-x-auto">
+            <table
+              className="w-full min-w-[1050px] table-fixed text-body"
+              aria-label="Repair case queue"
+            >
               <colgroup>
-                <col className="w-[56px]" />
-                <col className="w-[52px]" />
+                <col className="w-[54px]" />
+                <col className="w-[62px]" />
                 <col />
-                <col className="w-[190px]" />
-                <col className="w-[96px]" />
-                <col className="w-[164px]" />
-                <col className="w-[210px]" />
-                <col className="w-[92px]" />
+                <col className="w-[100px]" />
+                <col className="w-[180px]" />
+                <col className="w-[195px]" />
+                <col className="w-[88px]" />
                 <col className="w-[44px]" />
               </colgroup>
               <thead>
-                <tr className="border-b border-border text-left text-muted-foreground">
-                  <th className="px-3 py-2" />
-                  <th className="px-3 py-2 font-medium">#</th>
-                  <th className="px-3 py-2 font-medium">Issue</th>
-                  <th className="px-3 py-2 font-medium">Address</th>
-                  <th className="px-3 py-2 font-medium">Urgency</th>
-                  <th className="px-3 py-2 font-medium">Status</th>
-                  <th className="px-3 py-2 font-medium">Assigned to</th>
-                  <th className="px-3 py-2 font-medium">Updated ↓</th>
-                  <th />
+                <tr className="border-b border-border bg-muted/50 text-left text-muted-foreground">
+                  <th scope="col">
+                    <span className="sr-only">Property photo</span>
+                  </th>
+                  {["Case", "Issue / property", "Urgency", "Status", "Assigned to", "Updated"].map(
+                    (label) => (
+                      <th scope="col" key={label} className="px-3 py-3 text-micro font-medium">
+                        {label}
+                      </th>
+                    ),
+                  )}
+                  <th scope="col">
+                    <span className="sr-only">Actions</span>
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {cases.isLoading &&
                   Array.from({ length: 8 }).map((_, r) => (
-                    // Real <tr>/<td>, not one colSpan cell: the table is
-                    // `table-fixed` with a <colgroup>, so placeholders in
-                    // actual cells land on the exact columns the data will
-                    // occupy and nothing shifts sideways on arrival.
-                    <tr key={`skeleton-${r}`} className="h-[45px] border-b border-border">
+                    <tr key={r} className="h-20 border-b border-border">
                       {SKELETON_CELLS.map((w, c) => (
                         <td key={c} className="px-3">
                           {w ? <Skeleton className={cn("h-3", w)} /> : null}
@@ -367,87 +388,61 @@ function MaintenancePage() {
                   ))}
                 {cases.isError && (
                   <tr>
-                    <td colSpan={9} className="px-4 py-8 text-center text-xs text-destructive">
+                    <td colSpan={8} className="px-4 py-8 text-center text-destructive">
                       Could not load tickets. Is the backend running?
                     </td>
                   </tr>
                 )}
                 {!cases.isLoading && !cases.isError && items.length === 0 && (
                   <tr>
-                    <td colSpan={9} className="px-4 py-8 text-center text-xs text-muted-foreground">
+                    <td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">
                       No tickets match the current filters.
                     </td>
                   </tr>
                 )}
-                {items.map((t, rowIndex) => (
+                {items.map((t) => (
                   <tr
                     key={t.id}
-                    // The entrance runs on mount only. Rows are keyed by
-                    // case id, so a poll that returns the same 39 cases
-                    // re-renders without remounting and nothing replays --
-                    // but changing a filter genuinely remounts the list,
-                    // and the cascade is then the confirmation that the
-                    // filter did something.
-                    className="group animate-in fade-in slide-in-from-bottom-1 border-b border-border last:border-0 transition-colors duration-fast ease-fixi fill-mode-both hover:bg-muted/60"
-                    // Capped at ten steps: past that the tail of a long
-                    // list is still arriving after the operator has
-                    // started reading the top of it.
-                    style={{ animationDelay: `${Math.min(rowIndex, 10) * 22}ms` }}
+                    className="border-b border-border last:border-0 transition-colors hover:bg-muted/50"
                   >
-                    <td className="px-3 py-1.5">
-                      {/* Was an identical <Building2/> on all 39 rows: 56px
-                       * of width carrying zero information. Properties
-                       * gained a `photo_key` and the list endpoint now
-                       * returns it, so this shows which building the job
-                       * is at -- genuinely useful when scanning. Falls
-                       * back to the neutral tile when null; never
-                       * fabricates a photo (docs/27). */}
+                    <td className="pl-4 py-4">
                       <PropertyPhoto
                         photoKey={t.property_photo_key}
-                        className="h-8 w-8 rounded-md"
+                        className="h-9 w-9 rounded-md"
                       />
                     </td>
-                    <td className="px-3 py-2 text-muted-foreground">
+                    <td className="px-3 py-4 text-micro text-muted-foreground">
                       <Link
                         to="/maintenance/tickets/$ticketId/{-$section}"
                         params={{ ticketId: t.id, section: undefined }}
-                        className="block"
                       >
                         #{t.case_number}
                       </Link>
                     </td>
-                    <td className="px-3 py-2 font-medium">
+                    <td className="px-3 py-4">
                       <Link
                         to="/maintenance/tickets/$ticketId/{-$section}"
                         params={{ ticketId: t.id, section: undefined }}
-                        className="block truncate hover:underline"
-                        title={t.title}
+                        className="queue-title block font-medium hover:underline"
                       >
                         {t.title}
                       </Link>
+                      <p className="mt-1 text-micro text-muted-foreground">{t.property_address}</p>
+                      {t.is_archived && <span className="sample-label">Archival sample</span>}
                     </td>
-                    <td
-                      className="truncate px-3 py-2 text-muted-foreground"
-                      title={t.property_address}
-                    >
-                      {t.property_address}
-                    </td>
-                    <td className="px-3 py-2">
+                    <td className="px-3 py-4">
                       <UrgencyBadge urgency={t.urgency} />
                     </td>
-                    <td className="px-3 py-2">
+                    <td className="px-3 py-4">
                       <StatusBadge status={t.status} />
                     </td>
-                    <td
-                      className="truncate px-3 py-2 text-muted-foreground"
-                      title={t.assigned_contractor_name ?? undefined}
-                    >
-                      {t.assigned_contractor_name ?? "—"}
+                    <td className="px-3 py-4 text-micro text-muted-foreground break-words">
+                      {t.assigned_contractor_name ?? "Unassigned"}
                     </td>
-                    <td className="px-3 py-2 text-muted-foreground">
+                    <td className="px-3 py-4 text-micro text-muted-foreground">
                       {formatRelative(t.updated_at)}
                     </td>
-                    <td className="px-3 py-2 text-right">
+                    <td className="px-2 py-4">
                       <RowActions
                         caseId={t.id}
                         caseNumber={t.case_number}
@@ -460,6 +455,48 @@ function MaintenancePage() {
               </tbody>
             </table>
           </Card>
+          <div className="queue-mobile" aria-label="Repair case queue">
+            {cases.isLoading && <SkeletonCards count={4} height="h-44" />}
+            {cases.isError && (
+              <p role="alert" className="py-6 text-destructive">
+                Could not load tickets. Is the backend running?
+              </p>
+            )}
+            {!cases.isLoading && !cases.isError && items.length === 0 && (
+              <p className="py-6 text-muted-foreground">No tickets match the current filters.</p>
+            )}
+            {items.map((t) => (
+              <article key={t.id} className="mobile-case">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-micro text-muted-foreground">
+                    #{t.case_number} · {formatRelative(t.updated_at)}
+                  </span>
+                  <RowActions
+                    caseId={t.id}
+                    caseNumber={t.case_number}
+                    status={t.status}
+                    version={t.version}
+                  />
+                </div>
+                <Link
+                  to="/maintenance/tickets/$ticketId/{-$section}"
+                  params={{ ticketId: t.id, section: undefined }}
+                  className="mt-2 block text-base font-medium leading-snug hover:underline"
+                >
+                  {t.title}
+                </Link>
+                <p className="mt-2 text-sm text-muted-foreground">{t.property_address}</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <StatusBadge status={t.status} />
+                  <UrgencyBadge urgency={t.urgency} />
+                  {t.is_archived && <span className="sample-label">Archival sample</span>}
+                </div>
+                <p className="mt-3 text-micro text-muted-foreground">
+                  Assigned to {t.assigned_contractor_name ?? "nobody yet"}
+                </p>
+              </article>
+            ))}
+          </div>
 
           <aside className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-1">
             <Card className="p-3.5">

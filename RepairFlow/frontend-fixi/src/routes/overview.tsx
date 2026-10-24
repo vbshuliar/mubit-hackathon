@@ -115,52 +115,9 @@ function OverviewPage() {
           />
         ) : (
           <>
-            {/* --- Portfolio metrics ----------------------------------- */}
-            <section
-              className="grid grid-cols-2 gap-3 md:grid-cols-4"
-              aria-label="Portfolio metrics"
-            >
-              {overview.isLoading ? (
-                <LoadingRows rows={4} className="col-span-2 md:col-span-4" />
-              ) : (
-                <>
-                  <MetricLink
-                    icon={Building2}
-                    value={data?.property_count}
-                    label="Properties"
-                    linkTo="/properties"
-                  />
-                  <MetricLink
-                    icon={Users}
-                    value={data?.tenant_count}
-                    label="Tenants"
-                    // /tenants isn't registered in the route tree yet (a
-                    // sibling agent owns that page/route this session) --
-                    // a plain anchor still performs a real navigation via
-                    // the SPA fallback shell once it exists, same pattern
-                    // __root.tsx's ErrorComponent already uses for "Go
-                    // home". See NEEDS_FROM_ROOT_analytics.md.
-                    linkTo="/tenants"
-                  />
-                  <MetricLink
-                    icon={HardHat}
-                    value={data?.approved_contractor_count}
-                    label="Approved contractors"
-                    linkTo="/contractors"
-                  />
-                  <MetricLink
-                    icon={Wrench}
-                    value={openCases}
-                    label="Open cases"
-                    linkTo="/maintenance"
-                  />
-                </>
-              )}
-            </section>
-
             {/* --- Needs attention (most important block) --------------- */}
-            <section className="mt-5">
-              <Card className="p-4">
+            <section className="attention-section">
+              <Card className="p-5 md:p-7">
                 <div className="flex items-center gap-2">
                   <h2 className="text-section font-semibold">Needs attention</h2>
                   {!overview.isLoading && needsAttention.length > 0 && (
@@ -208,8 +165,8 @@ function OverviewPage() {
                                 <Icon className="h-4 w-4" />
                               </span>
                               <div className="min-w-0 flex-1">
-                                <div className="flex items-center gap-2">
-                                  <span className="truncate text-xs font-semibold">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <span className="text-strong font-semibold">
                                     #{item.case_number} · {item.case_title}
                                   </span>
                                   <span className="shrink-0 text-micro font-medium text-muted-foreground">
@@ -232,6 +189,49 @@ function OverviewPage() {
                   )}
                 </div>
               </Card>
+            </section>
+
+            {/* --- Portfolio metrics ----------------------------------- */}
+            <section
+              className="portfolio-strip mt-5 grid grid-cols-2 gap-3 md:grid-cols-4"
+              aria-label="Portfolio metrics"
+            >
+              {overview.isLoading ? (
+                <LoadingRows rows={4} className="col-span-2 md:col-span-4" />
+              ) : (
+                <>
+                  <MetricLink
+                    icon={Building2}
+                    value={data?.property_count}
+                    label="Properties"
+                    linkTo="/properties"
+                  />
+                  <MetricLink
+                    icon={Users}
+                    value={data?.tenant_count}
+                    label="Tenants"
+                    // /tenants isn't registered in the route tree yet (a
+                    // sibling agent owns that page/route this session) --
+                    // a plain anchor still performs a real navigation via
+                    // the SPA fallback shell once it exists, same pattern
+                    // __root.tsx's ErrorComponent already uses for "Go
+                    // home". See NEEDS_FROM_ROOT_analytics.md.
+                    linkTo="/tenants"
+                  />
+                  <MetricLink
+                    icon={HardHat}
+                    value={data?.approved_contractor_count}
+                    label="Approved contractors"
+                    linkTo="/contractors"
+                  />
+                  <MetricLink
+                    icon={Wrench}
+                    value={openCases}
+                    label="Open cases"
+                    linkTo="/maintenance"
+                  />
+                </>
+              )}
             </section>
 
             {/* --- Upcoming appointments / Recent activity --------------- */}
@@ -334,12 +334,12 @@ function MetricLink({
         <div className="text-metric font-bold tracking-tight">
           <Metric value={value ?? "—"} />
         </div>
-        <div className="truncate text-xs text-muted-foreground">{label}</div>
+        <div className="text-xs text-muted-foreground">{label}</div>
       </div>
     </>
   );
   const className =
-    "flex min-h-[92px] items-center gap-3 rounded-xl border border-border bg-card px-3.5 py-3 shadow-card transition-colors hover:bg-accent/60";
+    "flex min-h-[76px] items-center gap-3 rounded-lg px-3.5 py-3 transition-colors hover:bg-accent/60";
 
   // Every metric card is a real destination -- there is no plain-anchor
   // fallback any more, because there is no longer a card whose route does
@@ -361,7 +361,7 @@ function AppointmentRow({ appointment }: { appointment: OverviewAppointmentItem 
         className="-mx-1 flex items-center gap-3 rounded-lg px-1 py-2.5 transition-colors hover:bg-accent/60"
       >
         <div className="min-w-0 flex-1">
-          <div className="truncate text-xs font-semibold">{appointment.property_address}</div>
+          <div className="text-strong font-semibold">{appointment.property_address}</div>
           <div className="truncate text-micro text-muted-foreground">
             {appointment.contractor_name} · #{appointment.case_number}
           </div>
@@ -385,7 +385,7 @@ function ActivityRow({ event }: { event: OverviewActivityItem }) {
         className="-mx-1 flex items-center gap-3 rounded-lg px-1 py-2.5 transition-colors hover:bg-accent/60"
       >
         <div className="min-w-0 flex-1">
-          <div className="truncate text-xs font-semibold">
+          <div className="text-strong font-semibold">
             #{event.case_number} · {event.case_title}
           </div>
           <div className="truncate text-micro text-muted-foreground">

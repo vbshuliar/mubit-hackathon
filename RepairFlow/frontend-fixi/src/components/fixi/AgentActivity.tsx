@@ -244,7 +244,25 @@ export function AgentActivity({ snapshot }: { snapshot: CaseSnapshot }) {
         ) : (
           <ol className="mt-4 space-y-3">
             {items.map((run, i) => (
-              <RunCard key={run.id} run={run} round={items.length - i} />
+              <li key={run.id}>
+                <details
+                  open={
+                    i === 0 ||
+                    run.state === "FAILED" ||
+                    run.action_state === "FAILED" ||
+                    run.action_state === "REJECTED" ||
+                    run.action_state === "UNKNOWN"
+                  }
+                  className="rounded-lg border border-border p-3"
+                >
+                  <summary className="flex-wrap text-sm font-medium">
+                    Round {items.length - i} ·{" "}
+                    {run.proposal ? titleCase(run.proposal.action.kind) : titleCase(run.state)} ·{" "}
+                    {executionOutcome(run).label}
+                  </summary>
+                  <RunCard run={run} round={items.length - i} />
+                </details>
+              </li>
             ))}
           </ol>
         )}
@@ -270,7 +288,7 @@ function RunCard({ run, round }: { run: OrchestrationRun; round: number }) {
   const proposal = run.proposal;
 
   return (
-    <li className="rounded-xl border border-border p-3.5">
+    <div className="pt-4">
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
         <span className="text-xs font-semibold">Round {round}</span>
         <Pill tone={RUN_STATE_TONE[run.state] ?? "gray"}>Model: {titleCase(run.state)}</Pill>
@@ -340,7 +358,7 @@ function RunCard({ run, round }: { run: OrchestrationRun; round: number }) {
       <p className="mt-3 border-t border-border pt-2 text-micro text-muted-foreground">
         Model {run.model_id}
       </p>
-    </li>
+    </div>
   );
 }
 

@@ -31,8 +31,8 @@ import { cn } from "@/lib/utils";
 // single-work-order case renders as one centred node, not one node
 // stranded beside empty columns.
 const KIND_ORDER: WorkOrderKind[] = ["SCAFFOLD_INSTALL", "REPAIR", "SCAFFOLD_REMOVE"];
-const COLUMN_WIDTH = 260;
-const ROW_HEIGHT = 150;
+const COLUMN_WIDTH = 340;
+const ROW_HEIGHT = 320;
 
 const workOrderKindLabel: Record<WorkOrderKind, string> = {
   SCAFFOLD_INSTALL: "Scaffold install",
@@ -85,7 +85,7 @@ function WorkOrderNode({ data }: NodeProps<WorkOrderNodeType>) {
   return (
     <div
       className={cn(
-        "w-52 rounded-xl border-2 bg-card p-3 text-left shadow-card",
+        "w-64 rounded-xl border-2 bg-card p-3 text-left shadow-card",
         nodeBorderClasses[tone],
       )}
     >
@@ -209,7 +209,7 @@ export function WorkGraph({
         label: depEdgeLabel[dep.status],
         animated: dep.status === "OPEN",
         style: { stroke: depEdgeColor[dep.status], strokeWidth: 1.5 },
-        labelStyle: { fill: "var(--foreground)", fontSize: 11, fontWeight: 500 },
+        labelStyle: { fill: "var(--foreground)", fontSize: 13, fontWeight: 500 },
         labelBgStyle: { fill: "var(--card)" },
         labelBgPadding: [4, 2] as [number, number],
       }));
@@ -270,7 +270,7 @@ export function WorkGraph({
       {workOrders.length === 0 ? (
         <p className="mt-4 text-xs text-muted-foreground">No work orders on this case yet.</p>
       ) : (
-        <div className="mt-4 h-72 overflow-hidden rounded-lg border border-border bg-background/40">
+        <div className="mt-4 h-[420px] overflow-hidden rounded-lg border border-border bg-background/40">
           <ReactFlow
             nodes={nodes}
             edges={edges}

@@ -16,10 +16,12 @@ export function AgentDecisionSummary({ snapshot }: { snapshot: CaseSnapshot }) {
   const latestEvent = events.data?.items.at(-1);
   const latestDisplay = latestEvent ? eventDisplay(latestEvent) : null;
   const latest = runs.data?.items[0];
+  const trigger = events.data?.items.find((event) => event.id === latest?.trigger_event_id);
+  const triggerDisplay = trigger ? eventDisplay(trigger) : null;
   const noModel = noModelDecision(snapshot, events.data?.items ?? []);
   const pending = snapshot.pending_actions.find((a) => a.state === "AWAITING_APPROVAL");
   return (
-    <Card className="p-5">
+    <Card className="decision-summary p-5 md:p-6">
       <div className="flex items-center gap-2">
         <Brain className="h-5 w-5 text-primary" />
         <h2 className="text-section font-semibold">The agent's decision</h2>
@@ -36,9 +38,33 @@ export function AgentDecisionSummary({ snapshot }: { snapshot: CaseSnapshot }) {
         </p>
       ) : latest ? (
         <div className="mt-4 space-y-4">
+          <div className="decision-evidence">
+            <p className="text-micro font-medium text-muted-foreground">Incoming evidence</p>
+            <p className="mt-1 text-sm font-medium">
+              {triggerDisplay?.title ??
+                (events.isLoading
+                  ? "Loading the triggering event…"
+                  : "Triggering event not available in loaded history")}
+            </p>
+            {triggerDisplay?.description && (
+              <p className="mt-1 text-sm text-muted-foreground">{triggerDisplay.description}</p>
+            )}
+            {trigger && (
+              <div className="mt-2">
+                <Pill tone={trigger.provenance === "LIVE" ? "blue" : "gray"}>
+                  {trigger.provenance}
+                </Pill>
+              </div>
+            )}
+            {events.isError && (
+              <p role="alert" className="mt-2 text-sm text-destructive">
+                Evidence history could not be loaded.
+              </p>
+            )}
+          </div>
           <div>
             <p className="text-micro uppercase tracking-wide text-muted-foreground">
-              Chosen action
+              Agent proposal
             </p>
             <p className="mt-1 text-section font-semibold">
               {latest.proposal
@@ -60,15 +86,14 @@ export function AgentDecisionSummary({ snapshot }: { snapshot: CaseSnapshot }) {
               Model run: {titleCase(latest.state)}
             </Pill>
             {latest.policy_result && (
-              <Pill tone="gray">Initial admission: {titleCase(latest.policy_result)}</Pill>
+              <Pill tone="gray">Application checks: {titleCase(latest.policy_result)}</Pill>
             )}
             {pending && <Pill tone="amber">Approval needed</Pill>}
           </div>
           <ActionExecutionResult run={latest} />
-          <div>
-            <p className="text-micro uppercase tracking-wide text-muted-foreground">
-              Tools actually used
-            </p>
+          <details className="technical-details">
+            <summary className="text-sm font-medium">Inspect model and tool details</summary>
+            <p className="mt-3 text-micro text-muted-foreground">Tools actually used</p>
             <div className="mt-2 flex flex-wrap gap-1.5">
               {latest.tool_calls.length ? (
                 latest.tool_calls.map((t) => (
@@ -87,10 +112,14 @@ export function AgentDecisionSummary({ snapshot }: { snapshot: CaseSnapshot }) {
                 </p>
               )}
             </div>
-          </div>
-          <p className="border-t border-border pt-3 text-xs text-muted-foreground">
-            Model: {latest.model_id}. {modelExplanation(latest.model_id)}
-          </p>
+            <p className="mt-3 text-xs text-muted-foreground">
+              Model: {latest.model_id}. {modelExplanation(latest.model_id)}
+            </p>
+            <p className="mt-2 break-all text-micro text-muted-foreground">
+              Run {latest.id} · snapshot version {latest.snapshot_version}
+            </p>
+          </details>
+          <p className="text-micro text-muted-foreground">{modelExplanation(latest.model_id)}</p>
         </div>
       ) : noModel ? (
         <div className="mt-4 rounded-lg border border-destructive/25 bg-destructive/5 p-3">
