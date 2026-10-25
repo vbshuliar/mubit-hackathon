@@ -14,7 +14,9 @@
 
 > **The hackathon thesis:** use a capable model to coordinate complex repairs, then use Mubit to teach a smaller model the recurring decisions inside that workflow. Keep every operational action governed by explicit application rules.
 
-**A repair agent that moves cases forward today—and uses Mubit to turn repeated decisions into a specialized open-weight model for tomorrow.**
+**FIXI is a B2B maintenance coordinator for property-management companies and housing providers: automate the coordination cycle, bring people in for judgment and approvals, and use Mubit to specialize the decisions that repeat.**
+
+The buyer is the head of property management or repairs operations; the daily user is the property manager responsible for keeping cases moving. Our long-term opportunity is large housing portfolios. The initial discovery hypothesis is a 300–3,000-home agency; supporting a 100,000-home organisation is an ambition, not a demonstrated deployment capacity. [Buyer hypothesis and product scope →](RepairFlow/docs/01_PRODUCT_VISION.md)
 
 A tenant reports a leaking roof. A contractor visits and discovers that scaffolding is required. Someone must arrange the scaffolding, wait for approval and handover, rebook the roofer, verify the repair, arrange removal, and confirm the outcome with the tenant.
 
@@ -34,9 +36,30 @@ Fixi coordinates that chain. Every report becomes evidence. Every decision becom
 
 ## 🎯 The problem: automate the follow-through
 
+### A large operational problem, with published evidence
+
+| Published evidence | Why it matters for FIXI |
+|---|---|
+| **£10 billion** spent on repairs and maintenance in 2024/25 by England's private registered social-housing providers, **13% more** than the previous year. [Regulator of Social Housing, 2025 Global Accounts, Figure 3](https://www.gov.uk/government/publications/2025-global-accounts-of-private-registered-providers/2025-global-accounts-of-private-registered-providers) | Repairs are a substantial, recurring operating responsibility with pressure to use resources effectively. This includes physical maintenance and major works; it is not a software-market valuation or an estimate of avoidable administration. |
+| **Over 18.7 million repairs raised**, with **almost 1.2 million still in progress at year-end**, across reporting English social landlords in 2024/25. [RSH Tenant Satisfaction Measures, §5.6](https://www.gov.uk/government/statistics/tenant-satisfaction-measures-202425/tenant-satisfaction-measures-202425-headline-report) | Millions of cases need an owner, current evidence, and a next step. In-progress repairs are not necessarily overdue, and these figures do not attribute every delay to coordination. |
+| Clarion Response serves **over 100,000 homes** and completes an average of **1,200 repairs every working day**. [Clarion's service description](https://www.clarionhg.com/about-us/what-we-do/clarion-response-repairs-service) | The enterprise scale is real: one organisation can face substantial daily repair volume. Clarion is an example of market scale, not a FIXI customer or partner. |
+
+The Housing Ombudsman's [Repairing Trust report (2025)](https://www.housing-ombudsman.org.uk/reports/spotlight-reports/repairing-trust/) identifies poor communication, information failures, and contractor relationships as recurring repair-service concerns. **That is FIXI's opportunity: connect the decisions and handoffs between the people doing the work.** These sources concern social housing; they support the scale and nature of the problem, not proven demand or ROI in our initial private-lettings segment.
+
+### What changes for the property manager
+
 Repair management is full of small decisions with real consequences: is the work finished, is access missing, did the contractor fail to attend, or must another job happen first?
 
 Fixi keeps the case moving through intake, clarification, contractor selection, appointments, prerequisites, approvals, reports, and tenant confirmation. The agent proposes a structured next action; application rules check whether that action is allowed before it changes the case.
+
+| Coordination burden | FIXI's demonstrated workflow | Intended customer benefit |
+|---|---|---|
+| Read reports and reconstruct what happened. | Preserve evidence and interpret each report against the assigned work. | Less manual history reconstruction; a clear current case state. |
+| Discover and chase follow-on jobs. | Create explicit prerequisites and block dependent work until they are satisfied. | Fewer unowned handoffs and less repeated chasing. |
+| Track approvals and decide what can happen next. | Check proposed actions against policy, approval requirements, and dependencies. | Managers focus on decisions requiring their authority. |
+| Decide whether a visit actually resolved the issue. | Keep the original issue open until required work and tenant-confirmation conditions are met. | Avoid confusing attendance with resolution. |
+
+**The product ambition is end-to-end coordination automation, with human involvement concentrated on approvals, hazards, and ambiguous exceptions.** The prototype demonstrates the state, reasoning, and control loop using simulated external interactions. Production outreach and booking integrations remain necessary before that ambition can become an unattended real-world service.
 
 The demo makes this process inspectable:
 
@@ -50,6 +73,10 @@ No real tenant or contractor is contacted. Physical visits and bookings are simu
 ## 🧠 Why Mubit is the center of the idea
 
 Without Mubit, the agent can coordinate repairs, but each recurring language decision still depends on the configured provider model. With Mubit, those calls also supply examples for a specialized adapter: a way to turn repeated work into a reusable model capability.
+
+**Why this workload fits Mubit:** repair cases vary, but the same bounded decisions recur across a portfolio. Each report already has its work scope, evidence, and a structured outcome. That gives the learning workflow a concrete task, reusable examples, and a measurable acceptance criterion. Mubit supplies the gateway and specialist-training lifecycle; FIXI supplies the operational context and keeps authority over actions.
+
+The division of labour is deliberate: a capable coordinator reasons across the case, a smaller specialist targets repeated report interpretation, and deterministic application checks govern execution. This makes specialization useful without asking a four-billion-parameter model to own the entire repair operation. **The trained specialist's 91.7% internal result is evidence for this focused learning target—not a claim of 91.7% end-to-end repair automation.**
 
 Our strongest learning target is deliberately narrow and useful: **interpret a contractor's report against the work they were supposed to perform.** The frozen task returns one of seven outcomes:
 
@@ -113,6 +140,21 @@ The report-classification integration in the application is currently **default-
 Evidence: [adapter history and recovery log](RepairFlow/docs/ADAPTER_RECOVERY_PLAN.md), [200-scenario collection](RepairFlow/docs/MUBIT_FRESH_COLLECTION.md), [300-request collection](RepairFlow/docs/MUBIT_BULK_COLLECTION.md).
 
 ## 💸 The savings opportunity
+
+### Primary customer value: staff coordination capacity
+
+FIXI targets the active work spread across a repair's lifecycle: reading, scheduling, chasing, reconciling updates, managing prerequisites, and checking closure. The opportunity is to remove repeated coordination work across the cycle, not just shorten one message. Physical repairs still require tradespeople; approval and exception handling still require human responsibility.
+
+The pilot should measure **human coordination minutes per resolved case**, the share of cases requiring intervention, follow-up contacts, dependency recovery time, and reopened cases. Calculate time freed as:
+
+```text
+Annual staff hours freed = annual repair cases
+                         × (baseline active minutes − active minutes with FIXI) / 60
+```
+
+Measure the remaining human work across all cases, including review, exceptions, and corrections. Elapsed waiting days are not staff hours, and freed capacity is not automatically a cash saving. We have not measured customer time savings yet; the workflow demonstration establishes the mechanism to test in a pilot. [Research and pilot measurement plan →](RepairFlow/docs/02_BUSINESS_PROBLEM_RESEARCH.md)
+
+### Additional opportunity: specialist-model economics
 
 **Measured production savings: not established yet.** The adapter is not confirmed serving, and we have not measured its billed cost or latency. The value proposition is to avoid paying the provider-model cost for every repeated classification once a reliable specialist is available.
 

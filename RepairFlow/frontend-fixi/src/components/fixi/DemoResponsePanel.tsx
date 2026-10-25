@@ -18,10 +18,12 @@ import {
   type DemoInputKind,
 } from "@/lib/demo-response";
 import { titleCase, formatDateRange } from "@/lib/format";
+import { usePresentationMode } from "@/lib/presentation-mode";
 
 const inputClass =
   "mt-1.5 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring";
 export function DemoResponsePanel({ snapshot }: { snapshot: CaseSnapshot }) {
+  const presentation = usePresentationMode();
   const lastSubmission = useRef<{ fingerprint: string; body: DemoInput } | null>(null);
   const [attendance, setAttendance] = useState<"NO_ACCESS" | "NO_SHOW" | "AWAITING_REPORT">(
     "AWAITING_REPORT",
@@ -143,12 +145,18 @@ export function DemoResponsePanel({ snapshot }: { snapshot: CaseSnapshot }) {
     <Card className="border-primary/25 p-5">
       <div className="flex items-center gap-2">
         <MessageSquareText className="h-5 w-5 text-primary" />
-        <h2 className="text-section font-semibold">Continue the demo</h2>
-        <span className="ml-auto rounded-full bg-primary-soft px-2 py-1 text-micro font-medium text-primary">
-          SIMULATED INPUT
-        </span>
+        <h2 className="text-section font-semibold">
+          {presentation ? "Continue the case" : "Continue the demo"}
+        </h2>
+        {!presentation && (
+          <span className="ml-auto rounded-full bg-primary-soft px-2 py-1 text-micro font-medium text-primary">
+            SIMULATED INPUT
+          </span>
+        )}
       </div>
-      <p className="mt-2 text-sm text-muted-foreground">{copy.explanation}</p>
+      <p className="mt-2 text-sm text-muted-foreground">
+        {presentation ? "Provide the information needed to progress this case." : copy.explanation}
+      </p>
       {closed ? (
         <p className="mt-4 text-sm">
           This case is {titleCase(snapshot.case.status).toLowerCase()}.{" "}
@@ -455,10 +463,12 @@ export function DemoResponsePanel({ snapshot }: { snapshot: CaseSnapshot }) {
                 ? "Agent is working…"
                 : copy.button}
           </Button>
-          <p className="text-micro text-muted-foreground">
-            No one is contacted. Simulated physical events are separate from the agent's real
-            decisions.
-          </p>
+          {!presentation && (
+            <p className="text-micro text-muted-foreground">
+              No one is contacted. Simulated physical events are separate from the agent's real
+              decisions.
+            </p>
+          )}
         </form>
       )}
     </Card>

@@ -12,6 +12,8 @@ import type { CaseListItem, DashboardMetrics, UpcomingAppointmentItem } from "@/
 import { PropertyPhoto } from "./PropertyTabs";
 import { StatusBadge, UrgencyBadge } from "./Badge";
 import { formatDateRange, formatRelative } from "@/lib/format";
+import { presentationText } from "@/lib/presentation";
+import { usePresentationMode } from "@/lib/presentation-mode";
 
 export function OperationsDeck({
   metrics,
@@ -230,6 +232,7 @@ export function CaseBoard({
   error: boolean;
   renderActions: (item: CaseListItem) => ReactNode;
 }) {
+  const presentation = usePresentationMode();
   if (loading)
     return (
       <div className="board-message" role="status">
@@ -282,7 +285,7 @@ export function CaseBoard({
                       params={{ ticketId: item.id, section: undefined }}
                       className="board-case-title"
                     >
-                      {item.title}
+                      {presentation ? presentationText(item.title) : item.title}
                       <ArrowUpRight size={15} />
                     </Link>
                     <div className="board-property">
@@ -290,15 +293,27 @@ export function CaseBoard({
                         photoKey={item.property_photo_key}
                         className="h-8 w-8 rounded-md"
                       />
-                      <span>{item.property_address}</span>
+                      <span>
+                        {presentation
+                          ? presentationText(item.property_address)
+                          : item.property_address}
+                      </span>
                     </div>
                     <div className="board-case-tags">
                       <UrgencyBadge urgency={item.urgency} />
                       {lane.id === "closed" && <StatusBadge status={item.status} />}
-                      {item.is_archived && <span className="sample-label">Archival sample</span>}
+                      {item.is_archived && !presentation && (
+                        <span className="sample-label">Archival sample</span>
+                      )}
                     </div>
                     <footer>
-                      <span>{item.assigned_contractor_name ?? "Awaiting assignment"}</span>
+                      <span>
+                        {item.assigned_contractor_name
+                          ? presentation
+                            ? presentationText(item.assigned_contractor_name)
+                            : item.assigned_contractor_name
+                          : "Awaiting assignment"}
+                      </span>
                       <time dateTime={item.updated_at}>{formatRelative(item.updated_at)}</time>
                     </footer>
                   </article>

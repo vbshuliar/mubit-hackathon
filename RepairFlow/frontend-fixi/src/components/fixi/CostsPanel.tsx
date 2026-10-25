@@ -18,6 +18,8 @@ import type { WorkOrder } from "@/api/types";
 import { formatDate, formatPence, titleCase } from "@/lib/format";
 import { parsePoundsToPence, penceToPoundsInput } from "@/lib/pence";
 import { cn } from "@/lib/utils";
+import { presentationText } from "@/lib/presentation";
+import { usePresentationMode } from "@/lib/presentation-mode";
 
 const fieldClass =
   "mt-1.5 w-full rounded-lg border border-input bg-background px-3 py-2 text-xs text-foreground outline-none focus:ring-2 focus:ring-ring disabled:opacity-50";
@@ -525,6 +527,7 @@ function TotalsBlock({ totals }: { totals: CostTotals }) {
  * GET|POST /api/v1/cases/{id}/costs, PATCH|DELETE /api/v1/costs/{id}
  * (backend/app/api/costs.py). */
 export function CostsPanel({ caseId, workOrders }: { caseId: string; workOrders: WorkOrder[] }) {
+  const presentation = usePresentationMode();
   const costs = useCaseCosts(caseId);
 
   return (
@@ -551,7 +554,9 @@ export function CostsPanel({ caseId, workOrders }: { caseId: string; workOrders:
                       {workOrderKindLabel[wo.kind] ?? titleCase(wo.kind)}
                       <Pill tone="gray">{titleCase(wo.trade)}</Pill>
                     </div>
-                    <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{wo.scope}</p>
+                    <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
+                      {presentation ? presentationText(wo.scope) : wo.scope}
+                    </p>
                   </div>
                   <Pill tone={wo.status === "COMPLETED" ? "green" : "blue"}>
                     {titleCase(wo.status)}

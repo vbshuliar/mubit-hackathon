@@ -13,6 +13,7 @@ import { Toaster } from "sonner";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { CaseSearchContext } from "../lib/case-search-context";
+import { PresentationModeProvider } from "../lib/presentation-mode";
 
 function NotFoundComponent() {
   return (
@@ -140,12 +141,14 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <CaseSearchContext.Provider value={{ search: caseSearch, setSearch: setCaseSearch }}>
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        {/* No auth gate: operator sign-in was removed 2026-09-21 (see lib/auth-context.ts). */}
-        <Outlet />
-        <Toaster position="bottom-right" richColors closeButton />
-      </CaseSearchContext.Provider>
+      <PresentationModeProvider>
+        <CaseSearchContext.Provider value={{ search: caseSearch, setSearch: setCaseSearch }}>
+          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+          {/* No auth gate: operator sign-in was removed 2026-09-21 (see lib/auth-context.ts). */}
+          <Outlet />
+          <Toaster position="bottom-right" richColors closeButton />
+        </CaseSearchContext.Provider>
+      </PresentationModeProvider>
     </QueryClientProvider>
   );
 }

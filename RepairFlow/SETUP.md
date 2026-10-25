@@ -24,6 +24,11 @@ uv sync --frozen
 
 This creates `backend/.venv` from `uv.lock`. It takes about 10 seconds.
 
+On Windows the lockfile also installs `tzdata`. Windows does not normally
+provide the IANA database required by Python's `zoneinfo`; without this
+package, valid `UTC` and `Europe/London` availability submissions fail with
+`Unknown availability timezone`.
+
 ## 2. Frontend build (before you start the backend)
 
 ```

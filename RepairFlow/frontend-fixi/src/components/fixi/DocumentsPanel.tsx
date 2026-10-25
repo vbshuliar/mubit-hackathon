@@ -16,6 +16,8 @@ import {
 import { useAuthedCreds } from "@/lib/auth-context";
 import { formatDateTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { usePresentationMode } from "@/lib/presentation-mode";
+import { presentationText } from "@/lib/presentation";
 
 function formatBytes(n: number): string {
   if (n < 1024) return `${n} B`;
@@ -76,7 +78,13 @@ const SOURCE_LABEL: Record<string, string> = {
   OPERATOR: "Operator",
 };
 
-function EvidenceImage({ evidence }: { evidence: EvidenceRefLike }) {
+function EvidenceImage({
+  evidence,
+  presentation,
+}: {
+  evidence: EvidenceRefLike;
+  presentation: boolean;
+}) {
   const [failed, setFailed] = useState(false);
   // "Marked as an illustrative sample" has no dedicated boolean on
   // EvidenceRef -- provenance is the real signal available: anything not
@@ -95,21 +103,30 @@ function EvidenceImage({ evidence }: { evidence: EvidenceRefLike }) {
     <div className="relative overflow-hidden rounded-lg border border-border">
       <img
         src={evidence.locator}
-        alt={illustrative ? "Illustrative sample image" : "Reported evidence"}
+        alt={
+          presentation
+            ? "Evidence image"
+            : illustrative
+              ? "Illustrative sample image"
+              : "Reported evidence"
+        }
         loading="lazy"
         onError={() => setFailed(true)}
         className="aspect-square w-full object-cover"
       />
       <span className="absolute bottom-1 left-1 right-1 truncate rounded bg-foreground/70 px-1.5 py-0.5 text-micro font-medium text-background">
-        {illustrative
-          ? "Illustrative sample — not a photo of this property"
-          : (SOURCE_LABEL[evidence.source_type] ?? evidence.source_type)}
+        {presentation
+          ? "Evidence image"
+          : illustrative
+            ? "Illustrative sample — not a photo of this property"
+            : (SOURCE_LABEL[evidence.source_type] ?? evidence.source_type)}
       </span>
     </div>
   );
 }
 
 function EvidencePhotos({ evidenceRefs }: { evidenceRefs: unknown[] }) {
+  const presentation = usePresentationMode();
   const refs = evidenceRefs.filter(isEvidenceRefLike);
   if (refs.length === 0) return null;
   const images = refs.filter((r) => isImageLocator(r.locator));
@@ -124,7 +141,11 @@ function EvidencePhotos({ evidenceRefs }: { evidenceRefs: unknown[] }) {
       {images.length > 0 && (
         <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
           {images.map((ref, i) => (
-            <EvidenceImage key={`${ref.source_id}-${i}`} evidence={ref} />
+            <EvidenceImage
+              key={`${ref.source_id}-${i}`}
+              evidence={ref}
+              presentation={presentation}
+            />
           ))}
         </div>
       )}
@@ -139,9 +160,15 @@ function EvidencePhotos({ evidenceRefs }: { evidenceRefs: unknown[] }) {
                 <span className="font-medium">
                   {SOURCE_LABEL[ref.source_type] ?? ref.source_type}
                 </span>
-                <Pill tone={ref.provenance === "LIVE" ? "blue" : "gray"}>{ref.provenance}</Pill>
+                {!presentation && (
+                  <Pill tone={ref.provenance === "LIVE" ? "blue" : "gray"}>{ref.provenance}</Pill>
+                )}
               </div>
-              {ref.locator && <p className="mt-1 text-muted-foreground">{ref.locator}</p>}
+              {ref.locator && (
+                <p className="mt-1 text-muted-foreground">
+                  {presentation ? presentationText(ref.locator) : ref.locator}
+                </p>
+              )}
             </li>
           ))}
         </ul>

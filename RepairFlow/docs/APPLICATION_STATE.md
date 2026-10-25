@@ -1,5 +1,44 @@
 # Fixi — complete application state
 
+## 25 October 2026 — Demo preflight and admission display
+
+The local simulated roof/scaffold case #100 is now
+`a9c1d4f9-f513-4660-8bfc-348e531914e4`; older demo-guide IDs are not available
+in this database. All three work orders and both dependencies are complete,
+11 operational actions succeeded, and no case jobs remain pending. Preparation
+was reproduced against an isolated baseline. The nine case screens and Mubit
+Overview/Evaluations were rehearsed without recording; see
+`DEMO_PREFLIGHT_2026-10-25.md` for exact routes, evidence and simulation limits.
+
+Corrected summary/history admission badges: a successful run's immutable
+`policy_result=PENDING` means admitted to the action ledger, not checks still
+pending. They now display Admitted separately from the current action outcome.
+Focused tests (13), TypeScript, lint and production build passed.
+
+## 25 October 2026 — Fresh Windows setup
+
+A fresh Windows clone reproduced a missing runtime dependency: availability
+validation uses `ZoneInfo`, but the environment had no IANA timezone database.
+Valid UTC/Europe-London availability inputs failed in three existing tests.
+Added a Windows-only `tzdata` dependency (locked to 2026.5). Those failures
+now pass; the full backend suite is 464 passed and two failures in the optional
+replay utility's POSIX permission assertions. Windows `chmod(0o600)` does not
+establish an owner-only ACL, so private replay-artifact handling remains
+unverified on Windows; these failures were not skipped or weakened. The
+utility is not part of app startup.
+
+The local fixture-mode application runs with all 2,474 snapshot rows and 15
+files identical, 99 cases, a production frontend build, clean TypeScript,
+187 passing frontend unit tests and 12 passing fixture browser tests. Read-only
+browser checks against the populated app covered 11 routes and the mobile
+dashboard without page errors or failed HTTP responses. The original learning
+lab also runs in demo mode. No live provider calls or training occurred.
+
+The frontend install reports ten npm dependency advisories (five critical,
+three high, two moderate); dependency remediation and actual runtime exposure
+were not assessed by this setup. See the root `LOCAL_SETUP.md` for commands,
+environment details, limitations and local verification artifacts.
+
 ## 25 October 2026 — Scroll story and operational workspace redesign
 
 Frontend-only redesign preserves the approved opening hero, then explains the

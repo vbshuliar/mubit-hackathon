@@ -1,6 +1,9 @@
 import { eventDisplay } from "@/lib/event-display";
 import { noModelDecision } from "@/lib/no-model-decision";
 import { ActionExecutionResult } from "@/components/fixi/ActionExecutionResult";
+import { admissionOutcome } from "@/lib/action-execution";
+import { usePresentationMode } from "@/lib/presentation-mode";
+import { presentationText } from "@/lib/presentation";
 import { modelExplanation } from "@/lib/demo-response";
 import { Brain, Loader2, ArrowRight } from "lucide-react";
 import { Link } from "@tanstack/react-router";
@@ -11,6 +14,7 @@ import { useCaseEvents } from "@/hooks/use-case-events";
 import { useCaseRuns } from "@/hooks/use-case-runs";
 import { titleCase } from "@/lib/format";
 export function AgentDecisionSummary({ snapshot }: { snapshot: CaseSnapshot }) {
+  const presentation = usePresentationMode();
   const runs = useCaseRuns(snapshot.case.id);
   const events = useCaseEvents(snapshot.case.id);
   const latestEvent = events.data?.items.at(-1);
@@ -20,6 +24,7 @@ export function AgentDecisionSummary({ snapshot }: { snapshot: CaseSnapshot }) {
   const triggerDisplay = trigger ? eventDisplay(trigger) : null;
   const noModel = noModelDecision(snapshot, events.data?.items ?? []);
   const pending = snapshot.pending_actions.find((a) => a.state === "AWAITING_APPROVAL");
+  const admission = latest ? admissionOutcome(latest) : null;
   return (
     <Card className="decision-summary p-5 md:p-6">
       <div className="flex items-center gap-2">
@@ -41,15 +46,22 @@ export function AgentDecisionSummary({ snapshot }: { snapshot: CaseSnapshot }) {
           <div className="decision-evidence">
             <p className="text-micro font-medium text-muted-foreground">Incoming evidence</p>
             <p className="mt-1 text-sm font-medium">
-              {triggerDisplay?.title ??
-                (events.isLoading
+              {triggerDisplay?.title
+                ? presentation
+                  ? presentationText(triggerDisplay.title)
+                  : triggerDisplay.title
+                : events.isLoading
                   ? "Loading the triggering event…"
-                  : "Triggering event not available in loaded history")}
+                  : "Triggering event not available in loaded history"}
             </p>
             {triggerDisplay?.description && (
-              <p className="mt-1 text-sm text-muted-foreground">{triggerDisplay.description}</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {presentation
+                  ? presentationText(triggerDisplay.description)
+                  : triggerDisplay.description}
+              </p>
             )}
-            {trigger && (
+            {trigger && !presentation && (
               <div className="mt-2">
                 <Pill tone={trigger.provenance === "LIVE" ? "blue" : "gray"}>
                   {trigger.provenance}
@@ -74,7 +86,11 @@ export function AgentDecisionSummary({ snapshot }: { snapshot: CaseSnapshot }) {
                   : "No action proposed yet"}
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              {latest.proposal?.decision_summary ?? latest.error_code ?? "The run is in progress."}
+              {latest.proposal?.decision_summary
+                ? presentation
+                  ? presentationText(latest.proposal.decision_summary)
+                  : latest.proposal.decision_summary
+                : (latest.error_code ?? "The run is in progress.")}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -85,41 +101,43 @@ export function AgentDecisionSummary({ snapshot }: { snapshot: CaseSnapshot }) {
             >
               Model run: {titleCase(latest.state)}
             </Pill>
-            {latest.policy_result && (
-              <Pill tone="gray">Application checks: {titleCase(latest.policy_result)}</Pill>
-            )}
+            {admission && <Pill tone={admission.tone}>Application checks: {admission.label}</Pill>}
             {pending && <Pill tone="amber">Approval needed</Pill>}
           </div>
           <ActionExecutionResult run={latest} />
-          <details className="technical-details">
-            <summary className="text-sm font-medium">Inspect model and tool details</summary>
-            <p className="mt-3 text-micro text-muted-foreground">Tools actually used</p>
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {latest.tool_calls.length ? (
-                latest.tool_calls.map((t) => (
-                  <span
-                    key={t.id}
-                    className="rounded-md border border-border px-2 py-1 text-xs"
-                    title={t.error_code ?? undefined}
-                  >
-                    {t.name}
-                    {t.outcome === "FAILED" ? " · failed" : ""}
-                  </span>
-                ))
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  Decided from the case snapshot; no additional tool reads.
-                </p>
-              )}
-            </div>
-            <p className="mt-3 text-xs text-muted-foreground">
-              Model: {latest.model_id}. {modelExplanation(latest.model_id)}
-            </p>
-            <p className="mt-2 break-all text-micro text-muted-foreground">
-              Run {latest.id} · snapshot version {latest.snapshot_version}
-            </p>
-          </details>
-          <p className="text-micro text-muted-foreground">{modelExplanation(latest.model_id)}</p>
+          {!presentation && (
+            <details className="technical-details">
+              <summary className="text-sm font-medium">Inspect model and tool details</summary>
+              <p className="mt-3 text-micro text-muted-foreground">Tools actually used</p>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {latest.tool_calls.length ? (
+                  latest.tool_calls.map((t) => (
+                    <span
+                      key={t.id}
+                      className="rounded-md border border-border px-2 py-1 text-xs"
+                      title={t.error_code ?? undefined}
+                    >
+                      {t.name}
+                      {t.outcome === "FAILED" ? " · failed" : ""}
+                    </span>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Decided from the case snapshot; no additional tool reads.
+                  </p>
+                )}
+              </div>
+              <p className="mt-3 text-xs text-muted-foreground">
+                Model: {latest.model_id}. {modelExplanation(latest.model_id)}
+              </p>
+              <p className="mt-2 break-all text-micro text-muted-foreground">
+                Run {latest.id} · snapshot version {latest.snapshot_version}
+              </p>
+            </details>
+          )}
+          {!presentation && (
+            <p className="text-micro text-muted-foreground">{modelExplanation(latest.model_id)}</p>
+          )}
         </div>
       ) : noModel ? (
         <div className="mt-4 rounded-lg border border-destructive/25 bg-destructive/5 p-3">

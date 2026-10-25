@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 import type { OrchestrationRun } from "@/api/types";
-import { executionOutcome } from "./action-execution";
+import { admissionOutcome, executionOutcome } from "./action-execution";
 const run = (extra: Partial<OrchestrationRun>) =>
   ({ state: "SUCCEEDED", policy_result: "PENDING", ...extra }) as OrchestrationRun;
 it("shows execution failure despite a successful model and initial pending policy", () => {
@@ -14,6 +14,18 @@ it("shows ledger success despite old pending policy", () =>
   expect(executionOutcome(run({ action_state: "SUCCEEDED" }))).toMatchObject({
     failed: false,
     label: "Action: Succeeded",
+  }));
+
+it("treats a pending action record as admitted policy checks, not a pending check", () =>
+  expect(admissionOutcome(run({ action_state: "SUCCEEDED" }))).toEqual({
+    label: "Admitted",
+    tone: "green",
+  }));
+
+it("does not claim admission when policy rejected the model proposal", () =>
+  expect(admissionOutcome(run({ state: "FAILED", policy_result: "Policy violation" }))).toEqual({
+    label: "Rejected",
+    tone: "red",
   }));
 it("exposes uncertain external action outcome", () =>
   expect(executionOutcome(run({ action_state: "UNKNOWN" })).uncertain).toBe(true));

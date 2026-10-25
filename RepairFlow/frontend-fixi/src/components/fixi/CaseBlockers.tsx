@@ -1,9 +1,12 @@
 import { Link } from "@tanstack/react-router";
 import { GitBranch, AlertTriangle } from "lucide-react";
 import type { CaseSnapshot } from "@/api/types";
+import { presentationText } from "@/lib/presentation";
+import { usePresentationMode } from "@/lib/presentation-mode";
 
 /** Only recorded open dependencies and unresolved concerns; no inferred clearance. */
 export function CaseBlockers({ snapshot }: { snapshot: CaseSnapshot }) {
+  const presentation = usePresentationMode();
   const open = snapshot.dependencies.filter((d) => d.status === "OPEN");
   const blocked = snapshot.work_orders.filter((w) => w.status === "BLOCKED");
   const concerns = snapshot.issue.unresolved_concerns;
@@ -21,19 +24,32 @@ export function CaseBlockers({ snapshot }: { snapshot: CaseSnapshot }) {
         {open.map((d) => (
           <li key={d.id}>
             <strong>
-              {snapshot.work_orders.find((w) => w.id === d.prerequisite_work_order_id)?.scope ??
-                "Prerequisite work"}
+              {presentation
+                ? presentationText(
+                    snapshot.work_orders.find((w) => w.id === d.prerequisite_work_order_id)
+                      ?.scope ?? "Prerequisite work",
+                  )
+                : (snapshot.work_orders.find((w) => w.id === d.prerequisite_work_order_id)?.scope ??
+                  "Prerequisite work")}
             </strong>
             <span className="text-muted-foreground">
               {" "}
               →{" "}
-              {snapshot.work_orders.find((w) => w.id === d.dependent_work_order_id)?.scope ??
-                "Dependent work"}
+              {presentation
+                ? presentationText(
+                    snapshot.work_orders.find((w) => w.id === d.dependent_work_order_id)?.scope ??
+                      "Dependent work",
+                  )
+                : (snapshot.work_orders.find((w) => w.id === d.dependent_work_order_id)?.scope ??
+                  "Dependent work")}
             </span>
             <p className="mt-1">{d.reason}</p>
           </li>
         ))}
-        {!open.length && blocked.map((w) => <li key={w.id}>{w.scope} · blocked</li>)}
+        {!open.length &&
+          blocked.map((w) => (
+            <li key={w.id}>{presentation ? presentationText(w.scope) : w.scope} · blocked</li>
+          ))}
         {concerns.map((concern, i) => (
           <li key={`${i}-${concern}`} className="flex gap-2">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />

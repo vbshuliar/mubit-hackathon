@@ -26,6 +26,8 @@ import {
 } from "@/lib/fixi-data";
 import { formatRelative } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { presentationText } from "@/lib/presentation";
+import { usePresentationMode } from "@/lib/presentation-mode";
 
 // One entry per <colgroup> column, in order: select, number, issue,
 // property, urgency, status, assignee, updated, menu. `null` means the
@@ -63,6 +65,7 @@ const statusFilters: Array<{ label: string; value: CaseStatus | "ALL" }> = [
 ];
 
 function MaintenancePage() {
+  const presentation = usePresentationMode();
   const [view, setView] = useState<"board" | "list">("board");
   const [statusFilter, setStatusFilter] = useState<CaseStatus | "ALL">("ALL");
   const [urgencyFilter, setUrgencyFilter] = useState<Urgency | "ALL">("ALL");
@@ -222,14 +225,17 @@ function MaintenancePage() {
                   allLabel="All properties"
                   options={(properties.data?.items ?? []).map((p) => ({
                     value: p.id,
-                    label: p.address_line,
+                    label: presentation ? presentationText(p.address_line) : p.address_line,
                   }))}
                 />
                 <FilterDropdown
                   value={contractorFilter}
                   onChange={setContractorFilter}
                   allLabel="All contractors"
-                  options={contractorOptions.map((name) => ({ value: name, label: name }))}
+                  options={contractorOptions.map((name) => ({
+                    value: name,
+                    label: presentation ? presentationText(name) : name,
+                  }))}
                 />
                 <label className="flex h-9 items-center gap-2 rounded-lg border border-border bg-card px-3 text-xs font-medium text-foreground hover:bg-accent">
                   <input
@@ -352,12 +358,16 @@ function MaintenancePage() {
                             params={{ ticketId: t.id, section: undefined }}
                             className="queue-title block font-medium hover:underline"
                           >
-                            {t.title}
+                            {presentation ? presentationText(t.title) : t.title}
                           </Link>
                           <p className="mt-1 text-micro text-muted-foreground">
-                            {t.property_address}
+                            {presentation
+                              ? presentationText(t.property_address)
+                              : t.property_address}
                           </p>
-                          {t.is_archived && <span className="sample-label">Archival sample</span>}
+                          {t.is_archived && !presentation && (
+                            <span className="sample-label">Archival sample</span>
+                          )}
                         </td>
                         <td className="px-3 py-4">
                           <UrgencyBadge urgency={t.urgency} />
@@ -366,7 +376,11 @@ function MaintenancePage() {
                           <StatusBadge status={t.status} />
                         </td>
                         <td className="px-3 py-4 text-micro text-muted-foreground break-words">
-                          {t.assigned_contractor_name ?? "Unassigned"}
+                          {t.assigned_contractor_name
+                            ? presentation
+                              ? presentationText(t.assigned_contractor_name)
+                              : t.assigned_contractor_name
+                            : "Unassigned"}
                         </td>
                         <td className="px-3 py-4 text-micro text-muted-foreground">
                           {formatRelative(t.updated_at)}
@@ -414,16 +428,25 @@ function MaintenancePage() {
                       params={{ ticketId: t.id, section: undefined }}
                       className="mt-2 block text-base font-medium leading-snug hover:underline"
                     >
-                      {t.title}
+                      {presentation ? presentationText(t.title) : t.title}
                     </Link>
-                    <p className="mt-2 text-sm text-muted-foreground">{t.property_address}</p>
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      {presentation ? presentationText(t.property_address) : t.property_address}
+                    </p>
                     <div className="mt-3 flex flex-wrap gap-2">
                       <StatusBadge status={t.status} />
                       <UrgencyBadge urgency={t.urgency} />
-                      {t.is_archived && <span className="sample-label">Archival sample</span>}
+                      {t.is_archived && !presentation && (
+                        <span className="sample-label">Archival sample</span>
+                      )}
                     </div>
                     <p className="mt-3 text-micro text-muted-foreground">
-                      Assigned to {t.assigned_contractor_name ?? "nobody yet"}
+                      Assigned to{" "}
+                      {t.assigned_contractor_name
+                        ? presentation
+                          ? presentationText(t.assigned_contractor_name)
+                          : t.assigned_contractor_name
+                        : "nobody yet"}
                     </p>
                   </article>
                 ))}

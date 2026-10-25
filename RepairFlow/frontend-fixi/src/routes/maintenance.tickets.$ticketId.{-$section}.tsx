@@ -34,6 +34,8 @@ import type { Appointment, CaseSnapshot } from "@/api/types";
 import { statusTone, STATUS_LABEL } from "@/lib/fixi-data";
 import { formatDateRange, formatPence, formatRelative, initials, titleCase } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { usePresentationMode } from "@/lib/presentation-mode";
+import { presentationText } from "@/lib/presentation";
 
 // "property"/"files"/"costs" used to be a second, dead button row above
 // this one ("Overview/Property/Files/Costs" with no onClick at all) --
@@ -96,6 +98,7 @@ function cap(s: string) {
 }
 
 function CasePage() {
+  const presentation = usePresentationMode();
   const { ticketId } = Route.useParams();
   const { section } = Route.useLoaderData();
   const show = (s: Section) => section === null || section === s;
@@ -108,7 +111,7 @@ function CasePage() {
   // tiles" rather than a hex string. Must sit above the early returns
   // below: hooks cannot be called conditionally.
   const loadedTitle = detail.data
-    ? `#${detail.data.snapshot.case.case_number} – ${detail.data.snapshot.case.title}`
+    ? `#${detail.data.snapshot.case.case_number} – ${presentation ? presentationText(detail.data.snapshot.case.title) : detail.data.snapshot.case.title}`
     : null;
   useEffect(() => {
     if (loadedTitle === null || typeof document === "undefined") return;
@@ -171,13 +174,17 @@ function CasePage() {
                 <ArrowLeft className="h-4 w-4" />
               </Link>
               <UrgencyBadge urgency={c.risk.urgency} />
-              <h1 className="min-w-0 text-title font-bold tracking-tight" title={c.title}>
-                #{c.case_number} – {c.title}
+              <h1
+                className="min-w-0 text-title font-bold tracking-tight"
+                title={presentation ? presentationText(c.title) : c.title}
+              >
+                #{c.case_number} – {presentation ? presentationText(c.title) : c.title}
               </h1>
             </div>
             <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 pl-8 text-strong text-muted-foreground">
               <span className="flex items-center gap-1.5">
-                <MapPin className="h-3.5 w-3.5 shrink-0" /> {address}
+                <MapPin className="h-3.5 w-3.5 shrink-0" />{" "}
+                {presentation ? presentationText(address) : address}
               </span>
               <button
                 type="button"
@@ -412,6 +419,7 @@ const appointmentStatusTone: Record<Appointment["status"], "amber" | "green" | "
 
 /** Attendance state is separate from the booking connector confirmation. */
 function NextAppointmentRow({ caseId, appointment }: { caseId: string; appointment: Appointment }) {
+  const presentation = usePresentationMode();
   const { date, time } = formatDateRange(appointment.start_at, appointment.end_at);
   return (
     <div className="mt-2 flex items-center justify-between gap-3">
@@ -435,7 +443,7 @@ function NextAppointmentRow({ caseId, appointment }: { caseId: string; appointme
              * indistinguishable from a genuine provider confirmation.
              * Communications and research already carry a provenance
              * badge; appointments did not. */}
-            {appointment.connector === "MOCK" && (
+            {!presentation && appointment.connector === "MOCK" && (
               <Pill
                 tone="amber"
                 title="Booked against a simulated calendar. No real contractor has been contacted or has agreed this slot."
@@ -497,6 +505,7 @@ function ContractorProfileLink({ contractorId }: { contractorId: string }) {
 }
 
 function SummaryColumn({ snapshot }: { snapshot: CaseSnapshot }) {
+  const presentation = usePresentationMode();
   const {
     case: c,
     issue,
@@ -552,10 +561,12 @@ function SummaryColumn({ snapshot }: { snapshot: CaseSnapshot }) {
   return (
     <Card className="p-5">
       <SectionHeader title="Case overview" />
-      <p className="mt-2 text-strong leading-relaxed text-muted-foreground">{issue.description}</p>
+      <p className="mt-2 text-strong leading-relaxed text-muted-foreground">
+        {presentation ? presentationText(issue.description) : issue.description}
+      </p>
       {c.last_decision_summary && (
         <p className="mt-2 rounded-lg bg-muted px-3 py-2 text-strong leading-relaxed text-muted-foreground">
-          {c.last_decision_summary}
+          {presentation ? presentationText(c.last_decision_summary) : c.last_decision_summary}
         </p>
       )}
 
@@ -565,7 +576,9 @@ function SummaryColumn({ snapshot }: { snapshot: CaseSnapshot }) {
           <div className="flex items-center gap-3">
             <Avatar initials={initials(tenant.display_name)} tone="gray" />
             <div className="leading-tight">
-              <div className="text-strong font-medium">{tenant.display_name}</div>
+              <div className="text-strong font-medium">
+                {presentation ? presentationText(tenant.display_name) : tenant.display_name}
+              </div>
               <div className="text-xs text-muted-foreground">
                 {tenant.phone_e164 ?? tenant.email ?? "No contact on file"}
               </div>
@@ -585,7 +598,11 @@ function SummaryColumn({ snapshot }: { snapshot: CaseSnapshot }) {
             <div className="flex items-center gap-3">
               <Avatar initials={initials(assigned_contractor.display_name)} tone="green" />
               <div className="leading-tight">
-                <div className="text-strong font-medium">{assigned_contractor.display_name}</div>
+                <div className="text-strong font-medium">
+                  {presentation
+                    ? presentationText(assigned_contractor.display_name)
+                    : assigned_contractor.display_name}
+                </div>
                 <div className="text-xs text-muted-foreground">
                   {assigned_contractor.trade ?? "—"}
                 </div>
@@ -650,7 +667,9 @@ function SummaryColumn({ snapshot }: { snapshot: CaseSnapshot }) {
             {shownContractors.map((ac) => (
               <li key={ac.id} className="flex items-start justify-between gap-2 text-xs">
                 <span className="min-w-0">
-                  <span className="block truncate font-medium">{ac.display_name}</span>
+                  <span className="block truncate font-medium">
+                    {presentation ? presentationText(ac.display_name) : ac.display_name}
+                  </span>
                   <span className="block text-muted-foreground">
                     {ac.trades.map(titleCase).join(", ") || "—"}
                     {ac.service_postcodes.length > 0 && ` · ${ac.service_postcodes.join(", ")}`}
@@ -699,10 +718,14 @@ function SummaryColumn({ snapshot }: { snapshot: CaseSnapshot }) {
                  * same report, and pinning the timestamp to the card's
                  * right edge put 657px of nothing between them. */}
                 <div className="flex items-center gap-2">
-                  <Pill tone={r.provenance === "LIVE" ? "blue" : "gray"}>{r.provenance}</Pill>
+                  {!presentation && (
+                    <Pill tone={r.provenance === "LIVE" ? "blue" : "gray"}>{r.provenance}</Pill>
+                  )}
                   <span className="text-muted-foreground">{formatRelative(r.observed_at)}</span>
                 </div>
-                <p className="mt-1.5 leading-relaxed">{r.text}</p>
+                <p className="mt-1.5 leading-relaxed">
+                  {presentation ? presentationText(r.text) : r.text}
+                </p>
               </li>
             ))}
           </ul>
@@ -757,6 +780,7 @@ function TimelineColumn({
   ticketId: string;
   showViewAll: boolean;
 }) {
+  const presentation = usePresentationMode();
   const events = useCaseEvents(caseId);
   const items = events.data?.items ?? [];
 
@@ -815,12 +839,16 @@ function TimelineColumn({
                * longest sensible title, so the timestamp lands just past
                * it instead of at the far wall (docs/27 section 4.4). */}
               <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,68ch)_auto] items-baseline gap-x-6">
-                <div className="text-strong font-semibold">{item.display_title}</div>
+                <div className="text-strong font-semibold">
+                  {presentation ? presentationText(item.display_title) : item.display_title}
+                </div>
                 <span className="justify-self-start whitespace-nowrap text-micro text-muted-foreground">
                   {formatRelative(item.occurred_at)}
                 </span>
                 <p className="col-span-2 mt-0.5 max-w-prose-fixi text-body leading-relaxed text-muted-foreground">
-                  {item.display_description}
+                  {presentation
+                    ? presentationText(item.display_description)
+                    : item.display_description}
                 </p>
               </div>
             </li>
@@ -862,14 +890,27 @@ const roofResponsibilityLabel: Record<string, string> = {
  * snapshot (snapshot.property / snapshot.tenant) -- this tab was dead
  * before; every field here is a real render target, not mock data. */
 function PropertyColumn({ snapshot }: { snapshot: CaseSnapshot }) {
+  const presentation = usePresentationMode();
   const { property, tenant } = snapshot;
   return (
     <Card className="p-5">
       <SectionHeader title="Property" />
       <div className="mt-2 divide-y divide-border">
-        <DetailRow label="Address" value={property.address_line} />
+        <DetailRow
+          label="Address"
+          value={presentation ? presentationText(property.address_line) : property.address_line}
+        />
         <DetailRow label="Postcode" value={property.postcode} />
-        <DetailRow label="Landlord reference" value={property.landlord_reference || "—"} />
+        <DetailRow
+          label="Landlord reference"
+          value={
+            property.landlord_reference
+              ? presentation
+                ? presentationText(property.landlord_reference)
+                : property.landlord_reference
+              : "—"
+          }
+        />
         <DetailRow
           label="Roof responsibility"
           value={
@@ -884,7 +925,10 @@ function PropertyColumn({ snapshot }: { snapshot: CaseSnapshot }) {
 
       <SectionHeader title="Tenant" />
       <div className="mt-2 divide-y divide-border">
-        <DetailRow label="Name" value={tenant.display_name} />
+        <DetailRow
+          label="Name"
+          value={presentation ? presentationText(tenant.display_name) : tenant.display_name}
+        />
         <DetailRow label="Phone" value={tenant.phone_e164 ?? "No phone on file"} />
         <DetailRow label="Email" value={tenant.email ?? "No email on file"} />
         <DetailRow label="Preferred channel" value={titleCase(tenant.preferred_channel)} />

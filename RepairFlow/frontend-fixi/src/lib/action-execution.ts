@@ -1,5 +1,23 @@
 import type { OrchestrationRun } from "@/api/types";
 import { titleCase } from "@/lib/format";
+
+/**
+ * `policy_result` is captured when the proposal is admitted to the action
+ * ledger. It is not updated as the action executes. A recorded `PENDING`
+ * therefore means the proposal passed application checks and is awaiting
+ * execution; it does not mean the checks themselves are pending.
+ */
+export function admissionOutcome(run: OrchestrationRun) {
+  if (!run.policy_result) return null;
+
+  if (run.state === "SUCCEEDED") return { label: "Admitted", tone: "green" as const };
+  if (run.state === "FAILED") return { label: "Rejected", tone: "red" as const };
+  if (run.state === "SUPERSEDED") {
+    return { label: "Requeued after stale version", tone: "gray" as const };
+  }
+  return { label: titleCase(run.policy_result), tone: "gray" as const };
+}
+
 export function executionOutcome(run: OrchestrationRun) {
   if (run.state === "FAILED" && !run.action_state) {
     const rejectionReason =

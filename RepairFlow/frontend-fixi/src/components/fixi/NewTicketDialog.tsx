@@ -1,5 +1,6 @@
 import type { SafetyAnswer, SafetyAnswers } from "@/api/types";
 import { SAFETY_FIELDS, validAvailability } from "@/lib/demo-response";
+import { usePresentationMode } from "@/lib/presentation-mode";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useNavigate } from "@tanstack/react-router";
 import { Plus, X } from "lucide-react";
@@ -23,6 +24,7 @@ const fieldClass =
 const labelClass = "block text-xs font-medium text-muted-foreground";
 
 export function NewTicketDialog() {
+  const presentation = usePresentationMode();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [propertyId, setPropertyId] = useState("");
@@ -147,11 +149,12 @@ export function NewTicketDialog() {
           <div className="flex items-start justify-between gap-3">
             <div>
               <Dialog.Title className="text-section font-semibold text-foreground">
-                New demo repair ticket
+                {presentation ? "New repair ticket" : "New demo repair ticket"}
               </Dialog.Title>
               <Dialog.Description className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                Describe a simulated repair. The agent makes real decisions; tenant and specialist
-                responses are entered as text. Nobody is contacted.
+                {presentation
+                  ? "Describe the repair. Responses are entered as text."
+                  : "Describe a simulated repair. The agent makes real decisions; tenant and specialist responses are entered as text. Nobody is contacted."}
               </Dialog.Description>
             </div>
             <Dialog.Close asChild>

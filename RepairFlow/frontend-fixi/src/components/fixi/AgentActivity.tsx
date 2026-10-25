@@ -1,6 +1,8 @@
 import { noModelDecision } from "@/lib/no-model-decision";
 import { ActionExecutionResult } from "@/components/fixi/ActionExecutionResult";
-import { executionOutcome } from "@/lib/action-execution";
+import { admissionOutcome, executionOutcome } from "@/lib/action-execution";
+import { usePresentationMode } from "@/lib/presentation-mode";
+import { presentationText } from "@/lib/presentation";
 import {
   AlertTriangle,
   ArrowRight,
@@ -284,17 +286,19 @@ function durationMs(run: OrchestrationRun): number | null {
 }
 
 function RunCard({ run, round }: { run: OrchestrationRun; round: number }) {
+  const presentation = usePresentationMode();
   const ms = durationMs(run);
   const proposal = run.proposal;
+  const admission = admissionOutcome(run);
 
   return (
     <div className="pt-4">
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
         <span className="text-xs font-semibold">Round {round}</span>
-        <Pill tone={RUN_STATE_TONE[run.state] ?? "gray"}>Model: {titleCase(run.state)}</Pill>
-        {run.policy_result && (
-          <Pill tone="gray">Initial admission: {titleCase(run.policy_result)}</Pill>
+        {!presentation && (
+          <Pill tone={RUN_STATE_TONE[run.state] ?? "gray"}>Model: {titleCase(run.state)}</Pill>
         )}
+        {admission && <Pill tone={admission.tone}>Initial admission: {admission.label}</Pill>}
         <span className="text-micro text-muted-foreground">
           {formatRelative(run.started_at)}
           {ms !== null && ` · took ${(ms / 1000).toFixed(1)}s`}
@@ -310,37 +314,45 @@ function RunCard({ run, round }: { run: OrchestrationRun; round: number }) {
           an event on this case, at snapshot version {run.snapshot_version}
         </Step>
 
-        <Step icon={Eye} label="Read">
-          {run.tool_calls.length === 0 ? (
-            <span className="text-muted-foreground">
-              nothing — it decided from the snapshot alone
-            </span>
-          ) : (
-            <span className="flex flex-wrap gap-1">
-              {run.tool_calls.map((t) => (
-                <span
-                  key={t.id}
-                  title={t.error_code ?? undefined}
-                  className={cn(
-                    "rounded-md border px-1.5 py-px font-mono text-micro",
-                    t.outcome === "FAILED"
-                      ? "border-destructive/40 text-destructive"
-                      : "border-border text-muted-foreground",
-                  )}
-                >
-                  {t.name}
-                </span>
-              ))}
-            </span>
-          )}
-        </Step>
+        {!presentation && (
+          <Step icon={Eye} label="Read">
+            {run.tool_calls.length === 0 ? (
+              <span className="text-muted-foreground">
+                nothing — it decided from the snapshot alone
+              </span>
+            ) : (
+              <span className="flex flex-wrap gap-1">
+                {run.tool_calls.map((t) => (
+                  <span
+                    key={t.id}
+                    title={t.error_code ?? undefined}
+                    className={cn(
+                      "rounded-md border px-1.5 py-px font-mono text-micro",
+                      t.outcome === "FAILED"
+                        ? "border-destructive/40 text-destructive"
+                        : "border-border text-muted-foreground",
+                    )}
+                  >
+                    {t.name}
+                  </span>
+                ))}
+              </span>
+            )}
+          </Step>
+        )}
 
         <Step icon={Brain} label="Proposed">
           {proposal ? (
             <span>
               <span className="font-medium">{titleCase(proposal.action.kind)}</span>
               {proposal.decision_summary && (
-                <span className="text-muted-foreground"> — {proposal.decision_summary}</span>
+                <span className="text-muted-foreground">
+                  {" "}
+                  —{" "}
+                  {presentation
+                    ? presentationText(proposal.decision_summary)
+                    : proposal.decision_summary}
+                </span>
               )}
             </span>
           ) : (
@@ -355,9 +367,11 @@ function RunCard({ run, round }: { run: OrchestrationRun; round: number }) {
         )}
       </div>
 
-      <p className="mt-3 border-t border-border pt-2 text-micro text-muted-foreground">
-        Model {run.model_id}
-      </p>
+      {!presentation && (
+        <p className="mt-3 border-t border-border pt-2 text-micro text-muted-foreground">
+          Model {run.model_id}
+        </p>
+      )}
     </div>
   );
 }

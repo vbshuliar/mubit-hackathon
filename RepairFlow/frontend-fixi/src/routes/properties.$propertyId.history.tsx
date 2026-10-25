@@ -16,6 +16,8 @@ import { CASE_STATUSES, statusTone, type CaseStatus, STATUS_LABEL } from "@/lib/
 import { formatDate, formatPence, titleCase } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { readParam } from "@/lib/search-params";
+import { usePresentationMode } from "@/lib/presentation-mode";
+import { presentationText } from "@/lib/presentation";
 
 // `address`/`postcode` search params + the "no validateSearch" rule below
 // are unchanged from the previous version of this file -- see that
@@ -544,6 +546,7 @@ function HistoryRow({
   selected: boolean;
   onToggle: () => void;
 }) {
+  const presentation = usePresentationMode();
   const [expanded, setExpanded] = useState(false);
   const detailsId = useId();
   return (
@@ -570,7 +573,7 @@ function HistoryRow({
             params={{ ticketId: h.case_id, section: undefined }}
             className="line-clamp-2 hover:underline"
           >
-            {h.title}
+            {presentation ? presentationText(h.title) : h.title}
           </Link>
         </td>
         <td className="text-muted-foreground">{h.trade ? titleCase(h.trade) : "—"}</td>
@@ -578,7 +581,9 @@ function HistoryRow({
           <Pill tone={statusTone(h.status)}>{STATUS_LABEL[h.status] ?? h.status}</Pill>
         </td>
         <td>
-          <p className="line-clamp-2 text-muted-foreground">{h.outcome ?? "Not recorded"}</p>
+          <p className="line-clamp-2 text-muted-foreground">
+            {h.outcome ? (presentation ? presentationText(h.outcome) : h.outcome) : "Not recorded"}
+          </p>
           <button
             type="button"
             aria-expanded={expanded}
@@ -591,8 +596,14 @@ function HistoryRow({
           </button>
         </td>
         <td className="text-muted-foreground">
-          <span className="line-clamp-2">{h.contractor_name ?? "—"}</span>
-          {h.contractor_name?.includes("SIMULATED") && (
+          <span className="line-clamp-2">
+            {h.contractor_name
+              ? presentation
+                ? presentationText(h.contractor_name)
+                : h.contractor_name
+              : "—"}
+          </span>
+          {!presentation && h.contractor_name?.includes("SIMULATED") && (
             <span className="text-micro font-medium">Simulated</span>
           )}
         </td>

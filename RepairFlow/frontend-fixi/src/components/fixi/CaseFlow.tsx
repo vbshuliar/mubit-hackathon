@@ -20,6 +20,8 @@ import type { CaseEvent, CaseSnapshot, OrchestrationRun } from "@/api/types";
 import { buildCaseFlow, summariseCaseFlow, type FlowStep, type NowTone } from "@/lib/case-flow";
 import { formatDateTime, formatRelative } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { presentationText } from "@/lib/presentation";
+import { usePresentationMode } from "@/lib/presentation-mode";
 
 // One column per round of the loop, lanes down the column by kind.
 //
@@ -246,7 +248,20 @@ export function CaseFlow({
   selectedRunId: string | null;
   onSelectRun: (runId: string | null) => void;
 }) {
-  const steps = useMemo(() => buildCaseFlow(snapshot, events, runs), [snapshot, events, runs]);
+  const presentation = usePresentationMode();
+  const steps = useMemo(
+    () =>
+      buildCaseFlow(snapshot, events, runs).map((step) =>
+        presentation
+          ? {
+              ...step,
+              title: presentationText(step.title),
+              ...(step.detail ? { detail: presentationText(step.detail) } : {}),
+            }
+          : step,
+      ),
+    [snapshot, events, runs, presentation],
+  );
   const [copied, setCopied] = useState(false);
 
   const { nodes, edges, columns, bounds } = useMemo(() => {

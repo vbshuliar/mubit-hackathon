@@ -1,5 +1,25 @@
 # 26 — Specification review and decision record
 
+## 25 October 2026 — Admission display correction
+
+Frontend summary and decision history now distinguish successful admission
+from action execution. The run's stored `policy_result` captures the initial
+ledger state and may remain PENDING after the action succeeds. Display Admitted
+for a successfully admitted run, Rejected for failed admission, and retain the
+separate action ledger outcome. No domain/API contract or stored event changed.
+Validation: 13 focused tests, typecheck, changed-file lint and production build.
+
+## 25 October 2026 — Windows timezone dependency
+
+Fresh-clone execution showed that Python on Windows lacked the IANA timezone
+database. Valid availability submissions using UTC or Europe/London failed
+validation, independently reproduced with `ZoneInfo('Europe/London')` raising
+`ZoneInfoNotFoundError`. Added `tzdata` for `sys_platform == 'win32'` to the
+backend manifest and lockfile; no availability validation was relaxed. The
+three previously failing availability tests now pass. `SETUP.md` records the
+platform requirement; `APPLICATION_STATE.md` records the remaining unrelated
+Windows replay-permission failures and complete setup validation.
+
 ## 24 October 2026 — Text demo replaces calling (representative browser verification complete)
 
 The owner explicitly removed ElevenLabs and all telephone/browser calling from the

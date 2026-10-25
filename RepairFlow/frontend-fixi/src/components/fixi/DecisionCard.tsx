@@ -6,6 +6,8 @@ import { Pill } from "@/components/fixi/Badge";
 import { useDecideApproval } from "@/hooks/use-case-actions";
 import type { ActionRecord, ActionRecordAction, CaseSnapshot } from "@/api/types";
 import { titleCase } from "@/lib/format";
+import { presentationText } from "@/lib/presentation";
+import { usePresentationMode } from "@/lib/presentation-mode";
 
 /** Renders every ActionRecord on this case sitting in AWAITING_APPROVAL as
  * an actionable approve/reject card.
@@ -25,6 +27,7 @@ export function DecisionCard({
   pendingActions: ActionRecord[];
   snapshot: CaseSnapshot;
 }) {
+  const presentation = usePresentationMode();
   const awaiting = pendingActions.filter((a) => a.state === "AWAITING_APPROVAL");
   if (awaiting.length === 0) return null;
 
@@ -242,6 +245,7 @@ function ProposalScope({
   action: ActionRecordAction;
   snapshot: CaseSnapshot;
 }) {
+  const presentation = usePresentationMode();
   // A raw UUID in an approval dialog tells the operator nothing. Resolve
   // the ids the proposal references against the snapshot it was made from,
   // and fall back to the id when we genuinely cannot name it -- never to a
@@ -249,7 +253,7 @@ function ProposalScope({
   function label(key: string, value: string): string {
     if (key === "contractor_id") {
       const c = snapshot.approved_contractors.find((x) => x.id === value);
-      return c ? c.display_name : value;
+      return c ? (presentation ? presentationText(c.display_name) : c.display_name) : value;
     }
     if (key === "work_order_id") {
       const wo = snapshot.work_orders.find((x) => x.id === value);
