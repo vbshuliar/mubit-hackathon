@@ -1,3 +1,11 @@
+# Latest: UI cleanup — 25 October 2026
+
+See [UI cleanup verification](UI_CLEANUP_VERIFICATION.md) for the current 187-unit-test,
+12-browser-test results, responsive review and before/after captures. The sections
+below document previous milestones.
+
+---
+
 # Scroll story and board redesign verification — 25 October 2026
 
 The latest iteration preserves the approved opening hero, replaces the four-stage
@@ -65,20 +73,20 @@ Scope: only `RepairFlow/frontend-fixi/`. Backend, API types/contracts, data hook
 
 ## Checks
 
-| Check | Result |
-|---|---|
-| `npm test` | 187 passed, 15 files (same baseline count) |
-| `npm run test:browser` | 6 passed, fully intercepted synthetic API; no backend required |
-| `npm run typecheck` | Passed |
-| `npm run lint` | No errors; same 5 pre-existing warnings |
-| `npm run build` | Passed, including SPA prerender at `/` |
-| Existing route smoke check | Overview, Maintenance, Messages, Properties, Contractors, Tenants, Insights, Reports, ticket Agent and Work loaded |
-| Read-only smoke/captures | 0 mutation requests forwarded; no model calls or communications triggered |
-| Homepage without API | 0 API requests at desktop, tablet and mobile widths |
-| Runtime console | No page errors in the captured normal-WebGL screens or destination smoke check |
-| Responsive capture | 1440×1000, 768×1024, 390×844; mobile overflow found and fixed |
-| Failure modes | WebGL disabled + reduced motion usable; model success distinct from unrecorded execution; escalation and failed execution prominent |
-| Mutation behavior | Synthetic 409 checks preserve response draft/rejection reason; approval uses proposal version 7, rejection uses current version 8 and original payload hash |
+| Check                      | Result                                                                                                                                                      |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm test`                 | 187 passed, 15 files (same baseline count)                                                                                                                  |
+| `npm run test:browser`     | 6 passed, fully intercepted synthetic API; no backend required                                                                                              |
+| `npm run typecheck`        | Passed                                                                                                                                                      |
+| `npm run lint`             | No errors; same 5 pre-existing warnings                                                                                                                     |
+| `npm run build`            | Passed, including SPA prerender at `/`                                                                                                                      |
+| Existing route smoke check | Overview, Maintenance, Messages, Properties, Contractors, Tenants, Insights, Reports, ticket Agent and Work loaded                                          |
+| Read-only smoke/captures   | 0 mutation requests forwarded; no model calls or communications triggered                                                                                   |
+| Homepage without API       | 0 API requests at desktop, tablet and mobile widths                                                                                                         |
+| Runtime console            | No page errors in the captured normal-WebGL screens or destination smoke check                                                                              |
+| Responsive capture         | 1440×1000, 768×1024, 390×844; mobile overflow found and fixed                                                                                               |
+| Failure modes              | WebGL disabled + reduced motion usable; model success distinct from unrecorded execution; escalation and failed execution prominent                         |
+| Mutation behavior          | Synthetic 409 checks preserve response draft/rejection reason; approval uses proposal version 7, rejection uses current version 8 and original payload hash |
 
 Browser tests also cover stage buttons, CTAs, search query forwarding, status/archive filters, creation dialog, mobile drawer, `/overview`, case deep links, Agent and Work navigation. Existing unit tests cover response validation, pending states, appointment identity/draft retention, safety inputs and query behavior.
 

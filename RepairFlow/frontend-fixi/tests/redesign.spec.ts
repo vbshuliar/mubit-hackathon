@@ -150,6 +150,7 @@ test("homepage is backend independent and every stage remains usable", async ({ 
 });
 
 test("WebGL unavailable and reduced motion preserve all essential content", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 600 });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.addInitScript(() => {
     const original = HTMLCanvasElement.prototype.getContext;
@@ -159,9 +160,11 @@ test("WebGL unavailable and reduced motion preserve all essential content", asyn
     } as typeof original;
   });
   await page.goto("/");
+  await page.locator("#how-it-works").scrollIntoViewIfNeeded();
+  await expect(page.getByText("Diagram view · the full story remains available")).toBeVisible();
   await page.getByRole("button", { name: "04 Resolve", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "Finished means actually finished." }),
+    page.getByRole("heading", { name: /Finished means\s*actually finished\./ }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Diagram view", exact: true }).click();
   await expect(page.getByText("Diagram view · the full story remains available")).toBeVisible();
@@ -273,4 +276,42 @@ test("escalation and failed execution stay prominent", async ({ page }) => {
   await expect(page.locator(".decision-summary").getByRole("alert")).toContainText(
     "Fixture execution failed",
   );
+});
+
+test("In focus uses portfolio API counts and refreshes them independently of the queue", async ({
+  page,
+}) => {
+  await fixtureApi(page);
+  let active = 17;
+  let total = 83;
+  let calls = 0;
+  await page.route("**/api/v1/metrics/dashboard", (route) => {
+    calls++;
+    return route.fulfill({
+      json: {
+        total,
+        active,
+        awaiting_confirmation: 6,
+        escalated: 3,
+        resolved: 52,
+        cancelled: 5,
+        resolved_this_week: 9,
+        avg_resolution_hours: 18.4,
+        agent_active: false,
+        active_delta_pct: null,
+        awaiting_confirmation_delta_pct: null,
+        escalated_delta_pct: null,
+      },
+    });
+  });
+  await page.goto("/maintenance");
+  const panel = page.getByRole("region", { name: /Every repair.*In focus/ });
+  await expect(panel.locator(".mission-stats strong")).toHaveText(["17", "6", "9"]);
+  await expect(panel).toContainText("83 total tickets");
+  await expect(page.locator(".board-case-title")).toHaveCount(1);
+  active = 18;
+  total = 84;
+  await expect(panel.locator(".mission-stats strong").first()).toHaveText("18", { timeout: 12000 });
+  await expect(panel).toContainText("84 total tickets");
+  expect(calls).toBeGreaterThan(1);
 });
