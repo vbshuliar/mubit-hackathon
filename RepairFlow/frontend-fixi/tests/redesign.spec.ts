@@ -3,9 +3,18 @@ import { snapshot, proposal, event, run, caseItem, stamp } from "./fixtures";
 
 async function fixtureApi(
   page: Page,
-  options: { approval?: boolean; actionState?: string; error?: string; escalated?: boolean } = {},
+  options: {
+    approval?: boolean;
+    actionState?: string;
+    error?: string;
+    escalated?: boolean;
+  } = {},
 ) {
-  const requests: { method: string; path: string; body: Record<string, unknown> | null }[] = [];
+  const requests: {
+    method: string;
+    path: string;
+    body: Record<string, unknown> | null;
+  }[] = [];
   await page.route("**/api/v1/**", async (route) => {
     const req = route.request(),
       url = new URL(req.url()),
@@ -19,7 +28,9 @@ async function fixtureApi(
       await new Promise((resolve) => setTimeout(resolve, 180));
       return route.fulfill({
         status: 409,
-        json: { detail: "Fixture conflict: refresh and review before retrying." },
+        json: {
+          detail: "Fixture conflict: refresh and review before retrying.",
+        },
       });
     }
     let json: unknown = { items: [], next_cursor: null };
@@ -29,6 +40,8 @@ async function fixtureApi(
         active: 1,
         awaiting_confirmation: 0,
         escalated: 0,
+        resolved: 0,
+        cancelled: 0,
         resolved_this_week: 0,
         avg_resolution_hours: null,
         active_delta_pct: null,
@@ -99,7 +112,10 @@ async function fixtureApi(
         next_cursor: null,
       };
     else if (path === "/api/v1/properties")
-      json = { items: [{ ...snapshot.property, photo_key: null }], next_cursor: null };
+      json = {
+        items: [{ ...snapshot.property, photo_key: null }],
+        next_cursor: null,
+      };
     else if (path === "/api/v1/search") json = { groups: [] };
     return route.fulfill({ json });
   });
@@ -110,11 +126,18 @@ test("homepage is backend independent and every stage remains usable", async ({ 
   const requests = await fixtureApi(page);
   await page.goto("/");
   await expect(page.locator("h1")).toHaveText("From reported to resolved.");
-  for (const name of ["02 Coordinated", "03 Approved", "04 Confirmed", "01 Reported"]) {
+  for (const name of [
+    "02 Coordinate",
+    "03 Review",
+    "04 Resolve",
+    "05 Learn",
+    "06 Evaluate",
+    "01 Report",
+  ]) {
     await page.getByRole("button", { name, exact: true }).click();
     await expect(page.getByRole("button", { name, exact: true })).toHaveAttribute(
-      "aria-pressed",
-      "true",
+      "aria-current",
+      "step",
     );
   }
   await expect(page.getByRole("link", { name: "Open demo dashboard" }).first()).toHaveAttribute(
@@ -136,12 +159,12 @@ test("WebGL unavailable and reduced motion preserve all essential content", asyn
     } as typeof original;
   });
   await page.goto("/");
-  await page.getByRole("button", { name: "04 Confirmed", exact: true }).click();
-  await expect(page.getByText("A finished visit is only part of the story.")).toBeVisible();
-  await page.getByRole("button", { name: "Static view", exact: true }).click();
+  await page.getByRole("button", { name: "04 Resolve", exact: true }).click();
   await expect(
-    page.getByText("Static walkthrough · all stage controls remain available"),
+    page.getByRole("heading", { name: "Finished means actually finished." }),
   ).toBeVisible();
+  await page.getByRole("button", { name: "Diagram view", exact: true }).click();
+  await expect(page.getByText("Diagram view · the full story remains available")).toBeVisible();
   await expect(page.getByRole("link", { name: "Open demo dashboard" }).first()).toBeVisible();
 });
 
@@ -150,6 +173,8 @@ test("queue filters, search, mobile navigation and creation dialog retain their 
 }) => {
   const requests = await fixtureApi(page);
   await page.goto("/maintenance");
+  await expect(page.locator(".board-case-title")).toHaveText(caseItem.title);
+  await page.getByRole("button", { name: "List", exact: true }).click();
   await expect(page.locator(".queue-title")).toHaveText(caseItem.title);
   await page.getByRole("button", { name: "Resolved", exact: true }).click();
   await expect(page.getByText("No tickets match the current filters.").first()).toBeVisible();
@@ -209,7 +234,10 @@ test("case separates evidence, model, checks and unrecorded execution; draft sur
 test("approval preserves expected version and rejection retains reason on error", async ({
   page,
 }) => {
-  const requests = await fixtureApi(page, { approval: true, actionState: "AWAITING_APPROVAL" });
+  const requests = await fixtureApi(page, {
+    approval: true,
+    actionState: "AWAITING_APPROVAL",
+  });
   await page.goto("/maintenance/tickets/fixture-case");
   await page.getByRole("button", { name: "Approve", exact: true }).click();
   await expect.poll(() => requests.some((r) => r.path.includes("/approval"))).toBe(true);

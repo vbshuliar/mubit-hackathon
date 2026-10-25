@@ -1,3 +1,55 @@
+# Scroll story and board redesign verification — 25 October 2026
+
+The latest iteration preserves the approved opening hero, replaces the four-stage
+preview with six scroll-linked Three.js chapters, and makes the repair board the
+default Maintenance view. This is frontend code plus design/application-state
+documentation. Backend code, data, API contracts and provider settings are unchanged.
+
+## Current implementation
+
+- Six chapters cover Report, Coordinate, Review, Resolve, Learn and Evaluate. The
+  architectural model transforms into a task-adapter chip. Historical Mubit figures
+  are dated and explicitly below readiness gates, not live serving results.
+- The scene loads lazily, uses capped DPR and demand rendering, and respects reduced
+  motion. It stays mounted after loading but stops active scroll invalidation when
+  offscreen or hidden. Diagram view preserves the explanation.
+- At heights of 650px or less, chapters use normal document flow and direct controls
+  above the content, avoiding clipped sticky navigation.
+- Maintenance combines a metal portfolio panel, escalation inbox, visit rail and
+  four workflow lanes. The original list, filters, search and row actions remain.
+- Desktop sidebar overflow is scrollable. All up to five passed visits render,
+  matching the shown count. No property-table or cross-page cleanup is included yet.
+
+## Validation
+
+- All 187 existing offline unit tests passed (15 files).
+- TypeScript, production build and ESLint on changed frontend source passed.
+- Browser checks at 1280×720 and 390×844 verified actual scroll-driven 3D,
+  chapter jumps, board/list switching and status filtering. Console checks found
+  no errors. Read-only interactions did not submit operational actions or call models.
+- Additional 390×600 and 844×390 checks verified the short-height fallback;
+  1280×720 sidebar scrolling reached the operator account.
+- Independent review scored its three findings resolved: sidebar overflow,
+  short-screen clipping and displayed visit count. The nonempty visit branch was
+  verified in source because the live dataset had no upcoming visits.
+- Browser test/capture selectors have been updated for the new chapters and default
+  board. **The full automated Playwright suite was not rerun for this iteration.**
+  The six-test result below belongs to the earlier UI, not the current one.
+- The optional Impeccable detector was unavailable because its engine was not
+  installed. Source, browser and independent visual review were used.
+
+Latest captures: [scroll-story board screenshots](../artifacts/redesign/scroll-story/).
+The earlier images remain as historical evidence. The existing lazy Three.js bundle
+still produces Vite's large-chunk advisory; no framework or dependency upgrades
+were made in this iteration.
+
+---
+
+## Historical verification: initial material redesign
+
+The following record describes the earlier four-stage implementation and its test
+run. Its screenshots, motion details and checks must not be read as current.
+
 # Frontend redesign verification — 25 October 2026
 
 Scope: only `RepairFlow/frontend-fixi/`. Backend, API types/contracts, data hooks, provider settings, prompts, authorization and orchestration are unchanged. The unrelated untracked repository-root package-lock.json was left alone.

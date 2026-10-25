@@ -31,7 +31,7 @@ function Beam({
   );
 }
 
-function Building({ stage }: { stage: number }) {
+export function Building({ stage }: { stage: number }) {
   const scaffold = stage === 1 || stage === 2;
   return (
     <group position={[0, -0.45, 0]}>

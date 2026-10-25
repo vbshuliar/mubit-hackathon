@@ -1,0 +1,1040 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-24T23:56:02.715840+00:00",
+  "title": "Design System: Fixi",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Primary",
+        "tonalRamp": [
+          "oklch(0.150 0.1 162)",
+          "oklch(0.264 0.1 162)",
+          "oklch(0.379 0.1 162)",
+          "oklch(0.493 0.1 162)",
+          "oklch(0.607 0.1 162)",
+          "oklch(0.721 0.1 162)",
+          "oklch(0.836 0.1 162)",
+          "oklch(0.950 0.1 162)"
+        ]
+      },
+      "primary-foreground": {
+        "role": "primary",
+        "displayName": "Primary Foreground",
+        "tonalRamp": [
+          "oklch(0.150 0.005 160)",
+          "oklch(0.264 0.005 160)",
+          "oklch(0.379 0.005 160)",
+          "oklch(0.493 0.005 160)",
+          "oklch(0.607 0.005 160)",
+          "oklch(0.721 0.005 160)",
+          "oklch(0.836 0.005 160)",
+          "oklch(0.950 0.005 160)"
+        ]
+      },
+      "primary-soft": {
+        "role": "primary",
+        "displayName": "Primary Soft",
+        "tonalRamp": [
+          "oklch(0.150 0.03 160)",
+          "oklch(0.264 0.03 160)",
+          "oklch(0.379 0.03 160)",
+          "oklch(0.493 0.03 160)",
+          "oklch(0.607 0.03 160)",
+          "oklch(0.721 0.03 160)",
+          "oklch(0.836 0.03 160)",
+          "oklch(0.950 0.03 160)"
+        ]
+      },
+      "background": {
+        "role": "neutral",
+        "displayName": "Background",
+        "tonalRamp": [
+          "oklch(0.150 0.004 240)",
+          "oklch(0.264 0.004 240)",
+          "oklch(0.379 0.004 240)",
+          "oklch(0.493 0.004 240)",
+          "oklch(0.607 0.004 240)",
+          "oklch(0.721 0.004 240)",
+          "oklch(0.836 0.004 240)",
+          "oklch(0.950 0.004 240)"
+        ]
+      },
+      "foreground": {
+        "role": "neutral",
+        "displayName": "Foreground",
+        "tonalRamp": [
+          "oklch(0.150 0.014 250)",
+          "oklch(0.264 0.014 250)",
+          "oklch(0.379 0.014 250)",
+          "oklch(0.493 0.014 250)",
+          "oklch(0.607 0.014 250)",
+          "oklch(0.721 0.014 250)",
+          "oklch(0.836 0.014 250)",
+          "oklch(0.950 0.014 250)"
+        ]
+      },
+      "card": {
+        "role": "neutral",
+        "displayName": "Card",
+        "tonalRamp": [
+          "oklch(0.150 0 0)",
+          "oklch(0.264 0 0)",
+          "oklch(0.379 0 0)",
+          "oklch(0.493 0 0)",
+          "oklch(0.607 0 0)",
+          "oklch(0.721 0 0)",
+          "oklch(0.836 0 0)",
+          "oklch(0.950 0 0)"
+        ]
+      },
+      "card-foreground": {
+        "role": "neutral",
+        "displayName": "Card Foreground",
+        "tonalRamp": [
+          "oklch(0.150 0.034 264.7)",
+          "oklch(0.264 0.034 264.7)",
+          "oklch(0.379 0.034 264.7)",
+          "oklch(0.493 0.034 264.7)",
+          "oklch(0.607 0.034 264.7)",
+          "oklch(0.721 0.034 264.7)",
+          "oklch(0.836 0.034 264.7)",
+          "oklch(0.950 0.034 264.7)"
+        ]
+      },
+      "popover": {
+        "role": "neutral",
+        "displayName": "Popover",
+        "tonalRamp": [
+          "oklch(0.150 0 0)",
+          "oklch(0.264 0 0)",
+          "oklch(0.379 0 0)",
+          "oklch(0.493 0 0)",
+          "oklch(0.607 0 0)",
+          "oklch(0.721 0 0)",
+          "oklch(0.836 0 0)",
+          "oklch(0.950 0 0)"
+        ]
+      },
+      "popover-foreground": {
+        "role": "neutral",
+        "displayName": "Popover Foreground",
+        "tonalRamp": [
+          "oklch(0.150 0.034 264.7)",
+          "oklch(0.264 0.034 264.7)",
+          "oklch(0.379 0.034 264.7)",
+          "oklch(0.493 0.034 264.7)",
+          "oklch(0.607 0.034 264.7)",
+          "oklch(0.721 0.034 264.7)",
+          "oklch(0.836 0.034 264.7)",
+          "oklch(0.950 0.034 264.7)"
+        ]
+      },
+      "secondary": {
+        "role": "neutral",
+        "displayName": "Secondary",
+        "tonalRamp": [
+          "oklch(0.150 0.006 250)",
+          "oklch(0.264 0.006 250)",
+          "oklch(0.379 0.006 250)",
+          "oklch(0.493 0.006 250)",
+          "oklch(0.607 0.006 250)",
+          "oklch(0.721 0.006 250)",
+          "oklch(0.836 0.006 250)",
+          "oklch(0.950 0.006 250)"
+        ]
+      },
+      "secondary-foreground": {
+        "role": "neutral",
+        "displayName": "Secondary Foreground",
+        "tonalRamp": [
+          "oklch(0.150 0.03 264)",
+          "oklch(0.264 0.03 264)",
+          "oklch(0.379 0.03 264)",
+          "oklch(0.493 0.03 264)",
+          "oklch(0.607 0.03 264)",
+          "oklch(0.721 0.03 264)",
+          "oklch(0.836 0.03 264)",
+          "oklch(0.950 0.03 264)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted",
+        "tonalRamp": [
+          "oklch(0.150 0.005 250)",
+          "oklch(0.264 0.005 250)",
+          "oklch(0.379 0.005 250)",
+          "oklch(0.493 0.005 250)",
+          "oklch(0.607 0.005 250)",
+          "oklch(0.721 0.005 250)",
+          "oklch(0.836 0.005 250)",
+          "oklch(0.950 0.005 250)"
+        ]
+      },
+      "muted-foreground": {
+        "role": "neutral",
+        "displayName": "Muted Foreground",
+        "tonalRamp": [
+          "oklch(0.150 0.018 250)",
+          "oklch(0.264 0.018 250)",
+          "oklch(0.379 0.018 250)",
+          "oklch(0.493 0.018 250)",
+          "oklch(0.607 0.018 250)",
+          "oklch(0.721 0.018 250)",
+          "oklch(0.836 0.018 250)",
+          "oklch(0.950 0.018 250)"
+        ]
+      },
+      "accent": {
+        "role": "neutral",
+        "displayName": "Accent",
+        "tonalRamp": [
+          "oklch(0.150 0.006 250)",
+          "oklch(0.264 0.006 250)",
+          "oklch(0.379 0.006 250)",
+          "oklch(0.493 0.006 250)",
+          "oklch(0.607 0.006 250)",
+          "oklch(0.721 0.006 250)",
+          "oklch(0.836 0.006 250)",
+          "oklch(0.950 0.006 250)"
+        ]
+      },
+      "accent-foreground": {
+        "role": "neutral",
+        "displayName": "Accent Foreground",
+        "tonalRamp": [
+          "oklch(0.150 0.034 264.7)",
+          "oklch(0.264 0.034 264.7)",
+          "oklch(0.379 0.034 264.7)",
+          "oklch(0.493 0.034 264.7)",
+          "oklch(0.607 0.034 264.7)",
+          "oklch(0.721 0.034 264.7)",
+          "oklch(0.836 0.034 264.7)",
+          "oklch(0.950 0.034 264.7)"
+        ]
+      },
+      "destructive": {
+        "role": "neutral",
+        "displayName": "Destructive",
+        "tonalRamp": [
+          "oklch(0.150 0.245 27.325)",
+          "oklch(0.264 0.245 27.325)",
+          "oklch(0.379 0.245 27.325)",
+          "oklch(0.493 0.245 27.325)",
+          "oklch(0.607 0.245 27.325)",
+          "oklch(0.721 0.245 27.325)",
+          "oklch(0.836 0.245 27.325)",
+          "oklch(0.950 0.245 27.325)"
+        ]
+      },
+      "destructive-foreground": {
+        "role": "neutral",
+        "displayName": "Destructive Foreground",
+        "tonalRamp": [
+          "oklch(0.150 0.003 247.858)",
+          "oklch(0.264 0.003 247.858)",
+          "oklch(0.379 0.003 247.858)",
+          "oklch(0.493 0.003 247.858)",
+          "oklch(0.607 0.003 247.858)",
+          "oklch(0.721 0.003 247.858)",
+          "oklch(0.836 0.003 247.858)",
+          "oklch(0.950 0.003 247.858)"
+        ]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Border",
+        "tonalRamp": [
+          "oklch(0.150 0.009 250)",
+          "oklch(0.264 0.009 250)",
+          "oklch(0.379 0.009 250)",
+          "oklch(0.493 0.009 250)",
+          "oklch(0.607 0.009 250)",
+          "oklch(0.721 0.009 250)",
+          "oklch(0.836 0.009 250)",
+          "oklch(0.950 0.009 250)"
+        ]
+      },
+      "input": {
+        "role": "neutral",
+        "displayName": "Input",
+        "tonalRamp": [
+          "oklch(0.150 0.012 250)",
+          "oklch(0.264 0.012 250)",
+          "oklch(0.379 0.012 250)",
+          "oklch(0.493 0.012 250)",
+          "oklch(0.607 0.012 250)",
+          "oklch(0.721 0.012 250)",
+          "oklch(0.836 0.012 250)",
+          "oklch(0.950 0.012 250)"
+        ]
+      },
+      "ring": {
+        "role": "primary",
+        "displayName": "Ring",
+        "tonalRamp": [
+          "oklch(0.150 0.1 162)",
+          "oklch(0.264 0.1 162)",
+          "oklch(0.379 0.1 162)",
+          "oklch(0.493 0.1 162)",
+          "oklch(0.607 0.1 162)",
+          "oklch(0.721 0.1 162)",
+          "oklch(0.836 0.1 162)",
+          "oklch(0.950 0.1 162)"
+        ]
+      },
+      "sidebar": {
+        "role": "neutral",
+        "displayName": "Sidebar",
+        "tonalRamp": [
+          "oklch(0.150 0.012 250)",
+          "oklch(0.264 0.012 250)",
+          "oklch(0.379 0.012 250)",
+          "oklch(0.493 0.012 250)",
+          "oklch(0.607 0.012 250)",
+          "oklch(0.721 0.012 250)",
+          "oklch(0.836 0.012 250)",
+          "oklch(0.950 0.012 250)"
+        ]
+      },
+      "sidebar-foreground": {
+        "role": "neutral",
+        "displayName": "Sidebar Foreground",
+        "tonalRamp": [
+          "oklch(0.150 0.008 250)",
+          "oklch(0.264 0.008 250)",
+          "oklch(0.379 0.008 250)",
+          "oklch(0.493 0.008 250)",
+          "oklch(0.607 0.008 250)",
+          "oklch(0.721 0.008 250)",
+          "oklch(0.836 0.008 250)",
+          "oklch(0.950 0.008 250)"
+        ]
+      },
+      "sidebar-accent": {
+        "role": "neutral",
+        "displayName": "Sidebar Accent",
+        "tonalRamp": [
+          "oklch(0.150 0.015 250)",
+          "oklch(0.264 0.015 250)",
+          "oklch(0.379 0.015 250)",
+          "oklch(0.493 0.015 250)",
+          "oklch(0.607 0.015 250)",
+          "oklch(0.721 0.015 250)",
+          "oklch(0.836 0.015 250)",
+          "oklch(0.950 0.015 250)"
+        ]
+      },
+      "sidebar-border": {
+        "role": "neutral",
+        "displayName": "Sidebar Border",
+        "tonalRamp": [
+          "oklch(0.150 0.012 250)",
+          "oklch(0.264 0.012 250)",
+          "oklch(0.379 0.012 250)",
+          "oklch(0.493 0.012 250)",
+          "oklch(0.607 0.012 250)",
+          "oklch(0.721 0.012 250)",
+          "oklch(0.836 0.012 250)",
+          "oklch(0.950 0.012 250)"
+        ]
+      },
+      "surface-satin": {
+        "role": "neutral",
+        "displayName": "Surface Satin",
+        "tonalRamp": [
+          "oklch(0.150 0.005 240)",
+          "oklch(0.264 0.005 240)",
+          "oklch(0.379 0.005 240)",
+          "oklch(0.493 0.005 240)",
+          "oklch(0.607 0.005 240)",
+          "oklch(0.721 0.005 240)",
+          "oklch(0.836 0.005 240)",
+          "oklch(0.950 0.005 240)"
+        ]
+      },
+      "surface-glass": {
+        "role": "neutral",
+        "displayName": "Surface Glass",
+        "tonalRamp": [
+          "oklch(0.150 0 0)",
+          "oklch(0.264 0 0)",
+          "oklch(0.379 0 0)",
+          "oklch(0.493 0 0)",
+          "oklch(0.607 0 0)",
+          "oklch(0.721 0 0)",
+          "oklch(0.836 0 0)",
+          "oklch(0.950 0 0)"
+        ]
+      },
+      "preview-bg": {
+        "role": "neutral",
+        "displayName": "Preview Bg",
+        "tonalRamp": [
+          "oklch(0.150 0.008 250)",
+          "oklch(0.264 0.008 250)",
+          "oklch(0.379 0.008 250)",
+          "oklch(0.493 0.008 250)",
+          "oklch(0.607 0.008 250)",
+          "oklch(0.721 0.008 250)",
+          "oklch(0.836 0.008 250)",
+          "oklch(0.950 0.008 250)"
+        ]
+      },
+      "preview-text": {
+        "role": "neutral",
+        "displayName": "Preview Text",
+        "tonalRamp": [
+          "oklch(0.150 0.005 220)",
+          "oklch(0.264 0.005 220)",
+          "oklch(0.379 0.005 220)",
+          "oklch(0.493 0.005 220)",
+          "oklch(0.607 0.005 220)",
+          "oklch(0.721 0.005 220)",
+          "oklch(0.836 0.005 220)",
+          "oklch(0.950 0.005 220)"
+        ]
+      },
+      "preview-muted": {
+        "role": "neutral",
+        "displayName": "Preview Muted",
+        "tonalRamp": [
+          "oklch(0.150 0.012 220)",
+          "oklch(0.264 0.012 220)",
+          "oklch(0.379 0.012 220)",
+          "oklch(0.493 0.012 220)",
+          "oklch(0.607 0.012 220)",
+          "oklch(0.721 0.012 220)",
+          "oklch(0.836 0.012 220)",
+          "oklch(0.950 0.012 220)"
+        ]
+      },
+      "preview-line": {
+        "role": "neutral",
+        "displayName": "Preview Line",
+        "tonalRamp": [
+          "oklch(0.150 0.012 220)",
+          "oklch(0.264 0.012 220)",
+          "oklch(0.379 0.012 220)",
+          "oklch(0.493 0.012 220)",
+          "oklch(0.607 0.012 220)",
+          "oklch(0.721 0.012 220)",
+          "oklch(0.836 0.012 220)",
+          "oklch(0.950 0.012 220)"
+        ]
+      },
+      "preview-emerald": {
+        "role": "primary",
+        "displayName": "Preview Emerald",
+        "tonalRamp": [
+          "oklch(0.150 0.1 165)",
+          "oklch(0.264 0.1 165)",
+          "oklch(0.379 0.1 165)",
+          "oklch(0.493 0.1 165)",
+          "oklch(0.607 0.1 165)",
+          "oklch(0.721 0.1 165)",
+          "oklch(0.836 0.1 165)",
+          "oklch(0.950 0.1 165)"
+        ]
+      },
+      "status-red": {
+        "role": "neutral",
+        "displayName": "Status Red",
+        "tonalRamp": [
+          "oklch(0.150 0.03 20)",
+          "oklch(0.264 0.03 20)",
+          "oklch(0.379 0.03 20)",
+          "oklch(0.493 0.03 20)",
+          "oklch(0.607 0.03 20)",
+          "oklch(0.721 0.03 20)",
+          "oklch(0.836 0.03 20)",
+          "oklch(0.950 0.03 20)"
+        ]
+      },
+      "status-red-foreground": {
+        "role": "neutral",
+        "displayName": "Status Red Foreground",
+        "tonalRamp": [
+          "oklch(0.150 0.18 25)",
+          "oklch(0.264 0.18 25)",
+          "oklch(0.379 0.18 25)",
+          "oklch(0.493 0.18 25)",
+          "oklch(0.607 0.18 25)",
+          "oklch(0.721 0.18 25)",
+          "oklch(0.836 0.18 25)",
+          "oklch(0.950 0.18 25)"
+        ]
+      },
+      "status-orange": {
+        "role": "neutral",
+        "displayName": "Status Orange",
+        "tonalRamp": [
+          "oklch(0.150 0.04 70)",
+          "oklch(0.264 0.04 70)",
+          "oklch(0.379 0.04 70)",
+          "oklch(0.493 0.04 70)",
+          "oklch(0.607 0.04 70)",
+          "oklch(0.721 0.04 70)",
+          "oklch(0.836 0.04 70)",
+          "oklch(0.950 0.04 70)"
+        ]
+      },
+      "status-orange-foreground": {
+        "role": "neutral",
+        "displayName": "Status Orange Foreground",
+        "tonalRamp": [
+          "oklch(0.150 0.13 55)",
+          "oklch(0.264 0.13 55)",
+          "oklch(0.379 0.13 55)",
+          "oklch(0.493 0.13 55)",
+          "oklch(0.607 0.13 55)",
+          "oklch(0.721 0.13 55)",
+          "oklch(0.836 0.13 55)",
+          "oklch(0.950 0.13 55)"
+        ]
+      },
+      "status-green": {
+        "role": "neutral",
+        "displayName": "Status Green",
+        "tonalRamp": [
+          "oklch(0.150 0.04 155)",
+          "oklch(0.264 0.04 155)",
+          "oklch(0.379 0.04 155)",
+          "oklch(0.493 0.04 155)",
+          "oklch(0.607 0.04 155)",
+          "oklch(0.721 0.04 155)",
+          "oklch(0.836 0.04 155)",
+          "oklch(0.950 0.04 155)"
+        ]
+      },
+      "status-green-foreground": {
+        "role": "neutral",
+        "displayName": "Status Green Foreground",
+        "tonalRamp": [
+          "oklch(0.150 0.11 155)",
+          "oklch(0.264 0.11 155)",
+          "oklch(0.379 0.11 155)",
+          "oklch(0.493 0.11 155)",
+          "oklch(0.607 0.11 155)",
+          "oklch(0.721 0.11 155)",
+          "oklch(0.836 0.11 155)",
+          "oklch(0.950 0.11 155)"
+        ]
+      },
+      "status-blue": {
+        "role": "neutral",
+        "displayName": "Status Blue",
+        "tonalRamp": [
+          "oklch(0.150 0.03 250)",
+          "oklch(0.264 0.03 250)",
+          "oklch(0.379 0.03 250)",
+          "oklch(0.493 0.03 250)",
+          "oklch(0.607 0.03 250)",
+          "oklch(0.721 0.03 250)",
+          "oklch(0.836 0.03 250)",
+          "oklch(0.950 0.03 250)"
+        ]
+      },
+      "status-blue-foreground": {
+        "role": "neutral",
+        "displayName": "Status Blue Foreground",
+        "tonalRamp": [
+          "oklch(0.150 0.17 258)",
+          "oklch(0.264 0.17 258)",
+          "oklch(0.379 0.17 258)",
+          "oklch(0.493 0.17 258)",
+          "oklch(0.607 0.17 258)",
+          "oklch(0.721 0.17 258)",
+          "oklch(0.836 0.17 258)",
+          "oklch(0.950 0.17 258)"
+        ]
+      },
+      "status-amber": {
+        "role": "neutral",
+        "displayName": "Status Amber",
+        "tonalRamp": [
+          "oklch(0.150 0.05 85)",
+          "oklch(0.264 0.05 85)",
+          "oklch(0.379 0.05 85)",
+          "oklch(0.493 0.05 85)",
+          "oklch(0.607 0.05 85)",
+          "oklch(0.721 0.05 85)",
+          "oklch(0.836 0.05 85)",
+          "oklch(0.950 0.05 85)"
+        ]
+      },
+      "status-amber-foreground": {
+        "role": "neutral",
+        "displayName": "Status Amber Foreground",
+        "tonalRamp": [
+          "oklch(0.150 0.11 70)",
+          "oklch(0.264 0.11 70)",
+          "oklch(0.379 0.11 70)",
+          "oklch(0.493 0.11 70)",
+          "oklch(0.607 0.11 70)",
+          "oklch(0.721 0.11 70)",
+          "oklch(0.836 0.11 70)",
+          "oklch(0.950 0.11 70)"
+        ]
+      },
+      "status-purple": {
+        "role": "neutral",
+        "displayName": "Status Purple",
+        "tonalRamp": [
+          "oklch(0.150 0.03 300)",
+          "oklch(0.264 0.03 300)",
+          "oklch(0.379 0.03 300)",
+          "oklch(0.493 0.03 300)",
+          "oklch(0.607 0.03 300)",
+          "oklch(0.721 0.03 300)",
+          "oklch(0.836 0.03 300)",
+          "oklch(0.950 0.03 300)"
+        ]
+      },
+      "status-purple-foreground": {
+        "role": "neutral",
+        "displayName": "Status Purple Foreground",
+        "tonalRamp": [
+          "oklch(0.150 0.17 300)",
+          "oklch(0.264 0.17 300)",
+          "oklch(0.379 0.17 300)",
+          "oklch(0.493 0.17 300)",
+          "oklch(0.607 0.17 300)",
+          "oklch(0.721 0.17 300)",
+          "oklch(0.836 0.17 300)",
+          "oklch(0.950 0.17 300)"
+        ]
+      },
+      "status-gray": {
+        "role": "neutral",
+        "displayName": "Status Gray",
+        "tonalRamp": [
+          "oklch(0.150 0.005 250)",
+          "oklch(0.264 0.005 250)",
+          "oklch(0.379 0.005 250)",
+          "oklch(0.493 0.005 250)",
+          "oklch(0.607 0.005 250)",
+          "oklch(0.721 0.005 250)",
+          "oklch(0.836 0.005 250)",
+          "oklch(0.950 0.005 250)"
+        ]
+      },
+      "status-gray-foreground": {
+        "role": "neutral",
+        "displayName": "Status Gray Foreground",
+        "tonalRamp": [
+          "oklch(0.150 0.02 260)",
+          "oklch(0.264 0.02 260)",
+          "oklch(0.379 0.02 260)",
+          "oklch(0.493 0.02 260)",
+          "oklch(0.607 0.02 260)",
+          "oklch(0.721 0.02 260)",
+          "oklch(0.836 0.02 260)",
+          "oklch(0.950 0.02 260)"
+        ]
+      },
+      "sidebar-graphite": {
+        "role": "neutral",
+        "displayName": "Sidebar Graphite",
+        "tonalRamp": [
+          "oklch(0.150 0.012 230)",
+          "oklch(0.264 0.012 230)",
+          "oklch(0.379 0.012 230)",
+          "oklch(0.493 0.012 230)",
+          "oklch(0.607 0.012 230)",
+          "oklch(0.721 0.012 230)",
+          "oklch(0.836 0.012 230)",
+          "oklch(0.950 0.012 230)"
+        ]
+      },
+      "workflow-bg": {
+        "role": "neutral",
+        "displayName": "Workflow Bg",
+        "tonalRamp": [
+          "oklch(0.150 0.008 240)",
+          "oklch(0.264 0.008 240)",
+          "oklch(0.379 0.008 240)",
+          "oklch(0.493 0.008 240)",
+          "oklch(0.607 0.008 240)",
+          "oklch(0.721 0.008 240)",
+          "oklch(0.836 0.008 240)",
+          "oklch(0.950 0.008 240)"
+        ]
+      },
+      "board-paper": {
+        "role": "neutral",
+        "displayName": "Board Paper",
+        "tonalRamp": [
+          "oklch(0.150 0.001 220)",
+          "oklch(0.264 0.001 220)",
+          "oklch(0.379 0.001 220)",
+          "oklch(0.493 0.001 220)",
+          "oklch(0.607 0.001 220)",
+          "oklch(0.721 0.001 220)",
+          "oklch(0.836 0.001 220)",
+          "oklch(0.950 0.001 220)"
+        ]
+      },
+      "board-lane": {
+        "role": "neutral",
+        "displayName": "Board Lane",
+        "tonalRamp": [
+          "oklch(0.150 0.008 220)",
+          "oklch(0.264 0.008 220)",
+          "oklch(0.379 0.008 220)",
+          "oklch(0.493 0.008 220)",
+          "oklch(0.607 0.008 220)",
+          "oklch(0.721 0.008 220)",
+          "oklch(0.836 0.008 220)",
+          "oklch(0.950 0.008 220)"
+        ]
+      },
+      "search-surface": {
+        "role": "neutral",
+        "displayName": "Search Surface",
+        "tonalRamp": [
+          "oklch(0.150 0.008 220)",
+          "oklch(0.264 0.008 220)",
+          "oklch(0.379 0.008 220)",
+          "oklch(0.493 0.008 220)",
+          "oklch(0.607 0.008 220)",
+          "oklch(0.721 0.008 220)",
+          "oklch(0.836 0.008 220)",
+          "oklch(0.950 0.008 220)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Preserved hero headline."
+      },
+      "headline-workflow": {
+        "displayName": "Headline Workflow",
+        "purpose": "Scroll story chapter headline."
+      },
+      "title-operations": {
+        "displayName": "Title Operations",
+        "purpose": "Maintenance page heading."
+      },
+      "title-board": {
+        "displayName": "Title Board",
+        "purpose": "Desktop case title; larger at wide and mobile breakpoints."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Shared workspace body scale."
+      },
+      "body-workflow": {
+        "displayName": "Body Workflow",
+        "purpose": "Desktop narrative copy."
+      },
+      "label-board": {
+        "displayName": "Label Board",
+        "purpose": "Desktop case metadata and footer."
+      },
+      "label-nav": {
+        "displayName": "Label Nav",
+        "purpose": "Uppercase navigation group label."
+      },
+      "metric-portfolio": {
+        "displayName": "Metric Portfolio",
+        "purpose": "Portfolio counts with tabular numerals."
+      },
+      "button": {
+        "displayName": "Button",
+        "purpose": "Shared default workspace control."
+      },
+      "button-preview": {
+        "displayName": "Button Preview",
+        "purpose": "Preserved silver preview action."
+      }
+    },
+    "shadows": [
+      {
+        "name": "shadow-card",
+        "value": "0 1px 2px 0 oklch(0.2 0.03 260 / 0.035), 0 4px 14px -8px oklch(0.2 0.03 260 / 0.12)",
+        "purpose": "Standard cards and primary workspace controls."
+      },
+      {
+        "name": "shadow-panel",
+        "value": "var(--shadow-floating)",
+        "purpose": "Ordinary overlay panels."
+      },
+      {
+        "name": "shadow-floating",
+        "value": "0 16px 48px -16px oklch(0.2 0.015 240 / 0.25)",
+        "purpose": "Portaled popper panels and graph controls."
+      },
+      {
+        "name": "board-card",
+        "value": "0 3px 7px oklch(0.3 0.015 220 / 0.045)",
+        "purpose": "Opaque board card at rest."
+      },
+      {
+        "name": "board-card-hover",
+        "value": "0 8px 17px oklch(0.3 0.02 220 / 0.1)",
+        "purpose": "Hovered board card, with 2px upward travel."
+      },
+      {
+        "name": "portfolio-metal",
+        "value": "0 14px 32px oklch(0.2 0.02 240 / 0.12), inset 0 1px oklch(0.9 0.01 190 / 0.25)",
+        "purpose": "Graphite metal portfolio panel."
+      },
+      {
+        "name": "evidence-glass",
+        "value": "inset 0 1px oklch(0.95 0.01 175 / 0.18), 0 18px 40px oklch(0.08 0.005 240 / 0.35)",
+        "purpose": "Floating story evidence panel."
+      },
+      {
+        "name": "attention-inbox",
+        "value": "0 9px 28px oklch(0.35 0.02 240 / 0.06)",
+        "purpose": "Light attention inbox."
+      }
+    ],
+    "motion": [
+      {
+        "name": "transition-duration-instant",
+        "value": "90ms",
+        "purpose": "Shared button press and color response."
+      },
+      {
+        "name": "transition-duration-fast",
+        "value": "140ms",
+        "purpose": "Shell route transition fade."
+      },
+      {
+        "name": "transition-duration-base",
+        "value": "200ms",
+        "purpose": "Page-content route transition."
+      },
+      {
+        "name": "transition-duration-slow",
+        "value": "320ms",
+        "purpose": "Existing slower shared UI transition."
+      },
+      {
+        "name": "ease-fixi",
+        "value": "cubic-bezier(0.2, 0, 0, 1)",
+        "purpose": "Shared interaction easing."
+      },
+      {
+        "name": "ease-fixi-out",
+        "value": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "purpose": "Page-entry and indicator easing."
+      },
+      {
+        "name": "ease-fixi-in",
+        "value": "cubic-bezier(0.4, 0, 1, 1)",
+        "purpose": "Existing exit easing."
+      },
+      {
+        "name": "board-hover",
+        "value": "200ms; translateY(-2px)",
+        "purpose": "Card hover feedback; travel and transition removed under reduced motion."
+      },
+      {
+        "name": "silver-hover",
+        "value": "150ms; translateY(-2px)",
+        "purpose": "Preserved preview action feedback; global reduced-motion duration backstop applies."
+      },
+      {
+        "name": "chapter-track",
+        "value": "width 0.5s ease",
+        "purpose": "Chapter progress segment; transition removed under reduced motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "hero-mobile",
+        "value": "(max-width: 600px)"
+      },
+      {
+        "name": "shared-mobile",
+        "value": "(max-width: 640px)"
+      },
+      {
+        "name": "story-mobile",
+        "value": "(max-width: 650px)"
+      },
+      {
+        "name": "operations-mobile",
+        "value": "(max-width: 700px)"
+      },
+      {
+        "name": "list-mobile",
+        "value": "(max-width: 767px)"
+      },
+      {
+        "name": "story-tablet",
+        "value": "(max-width: 900px)"
+      },
+      {
+        "name": "desktop-sidebar",
+        "value": "(min-width: 1024px)"
+      },
+      {
+        "name": "operations-two-column",
+        "value": "(max-width: 1250px)"
+      },
+      {
+        "name": "operations-wide",
+        "value": "(min-width: 1500px)"
+      },
+      {
+        "name": "story-wide",
+        "value": "(min-width: 1600px)"
+      },
+      {
+        "name": "story-short-desktop",
+        "value": "(max-height: 680px) and (min-width: 651px)"
+      },
+      {
+        "name": "story-normal-flow",
+        "value": "(max-height: 650px)"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Existing workspace primary variant at its default size.",
+      "html": "<button class=\"ds-button-primary\" type=\"button\">Continue</button>",
+      "css": ".ds-button-primary{display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;border-radius:12px;padding:8px 16px;height:36px;border:0;font-family:\"Inter\", ui-sans-serif, system-ui, sans-serif;font-size:14px;font-weight:600;line-height:1.4rem;cursor:pointer;transition:color 90ms cubic-bezier(0.2,0,0,1),background-color 90ms cubic-bezier(0.2,0,0,1),border-color 90ms cubic-bezier(0.2,0,0,1),box-shadow 90ms cubic-bezier(0.2,0,0,1),transform 90ms cubic-bezier(0.2,0,0,1);background:var(--primary, oklch(0.49 0.1 162));color:var(--primary-foreground, oklch(0.99 0.005 160));box-shadow:var(--shadow-card, 0 1px 2px 0 oklch(0.2 0.03 260 / 0.035), 0 4px 14px -8px oklch(0.2 0.03 260 / 0.12));}.ds-button-primary:hover{background:color-mix(in oklch, var(--primary, oklch(0.49 0.1 162)) 90%, transparent);}.ds-button-primary:focus-visible{outline:none;box-shadow:0 0 0 1px var(--background, oklch(0.965 0.004 240)),0 0 0 3px var(--ring, oklch(0.49 0.1 162));}.ds-button-primary:active{transform:scale(0.97);}.ds-button-primary:disabled{pointer-events:none;opacity:0.5;transform:none;}@media(prefers-reduced-motion:reduce){.ds-button-primary{transition-duration:1ms;}}"
+    },
+    {
+      "name": "Outline button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Existing workspace outline variant at its default size.",
+      "html": "<button class=\"ds-button-outline\" type=\"button\">Continue</button>",
+      "css": ".ds-button-outline{display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;border-radius:12px;padding:8px 16px;height:36px;border:0;font-family:\"Inter\", ui-sans-serif, system-ui, sans-serif;font-size:14px;font-weight:600;line-height:1.4rem;cursor:pointer;transition:color 90ms cubic-bezier(0.2,0,0,1),background-color 90ms cubic-bezier(0.2,0,0,1),border-color 90ms cubic-bezier(0.2,0,0,1),box-shadow 90ms cubic-bezier(0.2,0,0,1),transform 90ms cubic-bezier(0.2,0,0,1);border:1px solid var(--border, oklch(0.87 0.009 250));background:transparent;color:var(--foreground, oklch(0.25 0.014 250));}.ds-button-outline:hover{background:var(--accent, oklch(0.955 0.006 250));color:var(--accent-foreground, oklch(0.21 0.034 264.7));}.ds-button-outline:focus-visible{outline:none;box-shadow:0 0 0 1px var(--background, oklch(0.965 0.004 240)),0 0 0 3px var(--ring, oklch(0.49 0.1 162));}.ds-button-outline:active{transform:scale(0.97);}.ds-button-outline:disabled{pointer-events:none;opacity:0.5;transform:none;}@media(prefers-reduced-motion:reduce){.ds-button-outline{transition-duration:1ms;}}"
+    },
+    {
+      "name": "Ghost button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Existing workspace ghost variant at its default size.",
+      "html": "<button class=\"ds-button-ghost\" type=\"button\">Continue</button>",
+      "css": ".ds-button-ghost{display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;border-radius:12px;padding:8px 16px;height:36px;border:0;font-family:\"Inter\", ui-sans-serif, system-ui, sans-serif;font-size:14px;font-weight:600;line-height:1.4rem;cursor:pointer;transition:color 90ms cubic-bezier(0.2,0,0,1),background-color 90ms cubic-bezier(0.2,0,0,1),border-color 90ms cubic-bezier(0.2,0,0,1),box-shadow 90ms cubic-bezier(0.2,0,0,1),transform 90ms cubic-bezier(0.2,0,0,1);background:transparent;color:var(--foreground, oklch(0.25 0.014 250));}.ds-button-ghost:hover{background:var(--accent, oklch(0.955 0.006 250));color:var(--accent-foreground, oklch(0.21 0.034 264.7));}.ds-button-ghost:focus-visible{outline:none;box-shadow:0 0 0 1px var(--background, oklch(0.965 0.004 240)),0 0 0 3px var(--ring, oklch(0.49 0.1 162));}.ds-button-ghost:active{transform:scale(0.97);}.ds-button-ghost:disabled{pointer-events:none;opacity:0.5;transform:none;}@media(prefers-reduced-motion:reduce){.ds-button-ghost{transition-duration:1ms;}}"
+    },
+    {
+      "name": "Destructive button",
+      "kind": "button",
+      "refersTo": "button-destructive",
+      "description": "Existing workspace destructive variant at its default size.",
+      "html": "<button class=\"ds-button-destructive\" type=\"button\">Delete</button>",
+      "css": ".ds-button-destructive{display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;border-radius:12px;padding:8px 16px;height:36px;border:0;font-family:\"Inter\", ui-sans-serif, system-ui, sans-serif;font-size:14px;font-weight:600;line-height:1.4rem;cursor:pointer;transition:color 90ms cubic-bezier(0.2,0,0,1),background-color 90ms cubic-bezier(0.2,0,0,1),border-color 90ms cubic-bezier(0.2,0,0,1),box-shadow 90ms cubic-bezier(0.2,0,0,1),transform 90ms cubic-bezier(0.2,0,0,1);background:var(--destructive, oklch(0.577 0.245 27.325));color:var(--destructive-foreground, oklch(0.984 0.003 247.858));}.ds-button-destructive:hover{background:color-mix(in oklch, var(--destructive, oklch(0.577 0.245 27.325)) 90%, transparent);}.ds-button-destructive:focus-visible{outline:none;box-shadow:0 0 0 1px var(--background, oklch(0.965 0.004 240)),0 0 0 3px var(--ring, oklch(0.49 0.1 162));}.ds-button-destructive:active{transform:scale(0.97);}.ds-button-destructive:disabled{pointer-events:none;opacity:0.5;transform:none;}@media(prefers-reduced-motion:reduce){.ds-button-destructive{transition-duration:1ms;}}"
+    },
+    {
+      "name": "Secondary button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Existing workspace secondary variant at its default size.",
+      "html": "<button class=\"ds-button-secondary\" type=\"button\">Continue</button>",
+      "css": ".ds-button-secondary{display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;border-radius:12px;padding:8px 16px;height:36px;border:0;font-family:\"Inter\", ui-sans-serif, system-ui, sans-serif;font-size:14px;font-weight:600;line-height:1.4rem;cursor:pointer;transition:color 90ms cubic-bezier(0.2,0,0,1),background-color 90ms cubic-bezier(0.2,0,0,1),border-color 90ms cubic-bezier(0.2,0,0,1),box-shadow 90ms cubic-bezier(0.2,0,0,1),transform 90ms cubic-bezier(0.2,0,0,1);background:var(--secondary, oklch(0.955 0.006 250));color:var(--secondary-foreground, oklch(0.3 0.03 264));}.ds-button-secondary:hover{background:color-mix(in oklch, var(--secondary, oklch(0.955 0.006 250)) 80%, transparent);}.ds-button-secondary:focus-visible{outline:none;box-shadow:0 0 0 1px var(--background, oklch(0.965 0.004 240)),0 0 0 3px var(--ring, oklch(0.49 0.1 162));}.ds-button-secondary:active{transform:scale(0.97);}.ds-button-secondary:disabled{pointer-events:none;opacity:0.5;transform:none;}@media(prefers-reduced-motion:reduce){.ds-button-secondary{transition-duration:1ms;}}"
+    },
+    {
+      "name": "Link button",
+      "kind": "button",
+      "refersTo": "button-link",
+      "description": "Existing workspace link variant at its default size.",
+      "html": "<button class=\"ds-button-link\" type=\"button\">View case</button>",
+      "css": ".ds-button-link{display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;border-radius:12px;padding:8px 16px;height:36px;border:0;font-family:\"Inter\", ui-sans-serif, system-ui, sans-serif;font-size:14px;font-weight:600;line-height:1.4rem;cursor:pointer;transition:color 90ms cubic-bezier(0.2,0,0,1),background-color 90ms cubic-bezier(0.2,0,0,1),border-color 90ms cubic-bezier(0.2,0,0,1),box-shadow 90ms cubic-bezier(0.2,0,0,1),transform 90ms cubic-bezier(0.2,0,0,1);background:transparent;color:var(--primary, oklch(0.49 0.1 162));text-underline-offset:4px;}.ds-button-link:hover{text-decoration:underline;}.ds-button-link:focus-visible{outline:none;box-shadow:0 0 0 1px var(--background, oklch(0.965 0.004 240)),0 0 0 3px var(--ring, oklch(0.49 0.1 162));}.ds-button-link:active{transform:scale(0.97);}.ds-button-link:disabled{pointer-events:none;opacity:0.5;transform:none;}@media(prefers-reduced-motion:reduce){.ds-button-link{transition-duration:1ms;}}"
+    },
+    {
+      "name": "Silver preview action",
+      "kind": "button",
+      "refersTo": "button-silver",
+      "description": "Preserved metallic entry action from the approved hero.",
+      "html": "<button class=\"ds-silver\" type=\"button\">Open demo dashboard <svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><path d=\"M7 17 17 7M7 7h10v10\"/></svg></button>",
+      "css": ".ds-silver{display:inline-flex;align-items:center;justify-content:center;gap:24px;min-height:50px;padding:14px 21px;border:0;border-radius:8px;background:linear-gradient(160deg,oklch(0.99 0.004 240),oklch(0.79 0.012 240));color:oklch(0.23 0.01 240);font-family:\"Inter\", sans-serif;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 8px 20px oklch(0.1 0 0 / 0.25),inset 0 1px oklch(1 0 0 / 0.8);transition:box-shadow 0.15s,transform 0.15s}.ds-silver:hover{transform:translateY(-2px);box-shadow:0 12px 25px oklch(0.1 0 0 / 0.4)}.ds-silver:focus-visible{outline:2px solid var(--ring, oklch(0.49 0.1 162));outline-offset:4px;}@media(prefers-reduced-motion:reduce){.ds-silver{transition-duration:1ms}}"
+    },
+    {
+      "name": "Global search",
+      "kind": "input",
+      "refersTo": "input-search",
+      "description": "Quiet inset titanium search field; the standalone sample does not query the API.",
+      "html": "<label class=\"ds-search\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><circle cx=\"11\" cy=\"11\" r=\"8\"/><path d=\"m21 21-4.3-4.3\"/></svg><input aria-label=\"Search\" placeholder=\"Search tickets, addresses, tenants or contractors…\"/></label>",
+      "css": ".ds-search{display:flex;align-items:center;gap:8px;height:40px;width:min(440px,50vw);max-width:100%;padding:0 12px;border-radius:8px;background:oklch(0.94 0.008 220);color:var(--muted-foreground, oklch(0.48 0.018 250));box-shadow:inset 0 1px 3px oklch(0.6 0.01 220 / 0.05)}.ds-search svg{flex-shrink:0}.ds-search input{min-width:0;flex:1;border:0;background:transparent;font-family:\"Inter\", ui-sans-serif, system-ui, sans-serif;font-size:12px;color:var(--foreground, oklch(0.25 0.014 250));caret-color:var(--primary, oklch(0.49 0.1 162));outline:none}.ds-search input::placeholder{color:var(--muted-foreground, oklch(0.48 0.018 250))}.ds-search input:focus-visible{outline:2px solid var(--ring, oklch(0.49 0.1 162));outline-offset:4px;}@media(max-width:700px){.ds-search{width:auto;flex-basis:100%}}"
+    },
+    {
+      "name": "Grouped workspace navigation",
+      "kind": "nav",
+      "refersTo": "nav-item",
+      "description": "Graphite desktop navigation, with a selected Maintenance link.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Workspace example\"><p>Workspace</p><a href=\"#overview\">Overview</a><a href=\"#maintenance\" aria-current=\"page\">Maintenance</a><a href=\"#messages\">Messages</a></nav>",
+      "css": ".ds-nav{width:170px;padding:16px;background:oklch(0.2 0.012 230);font-family:\"Inter\", ui-sans-serif, system-ui, sans-serif}.ds-nav p{margin:0;padding:18px 10px 9px;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:0.1em;color:oklch(0.67 0.017 210)}.ds-nav a{display:flex;align-items:center;height:41px;padding:0 12px;border-radius:12px;font-size:12px;font-weight:400;text-decoration:none;color:var(--sidebar-foreground, oklch(0.85 0.008 250));transition:background-color 150ms}.ds-nav a:hover{background:var(--sidebar-accent, oklch(0.32 0.015 250))}.ds-nav a[aria-current=\"page\"]{background:linear-gradient(120deg,oklch(0.46 0.035 180 / 0.75),oklch(0.33 0.025 180));color:oklch(0.96 0.018 170);box-shadow:inset 0 1px oklch(0.8 0.025 175 / 0.2),0 4px 10px oklch(0.1 0.005 240 / 0.15)}.ds-nav a:focus-visible{outline:2px solid var(--ring, oklch(0.49 0.1 162));outline-offset:4px;}@media(prefers-reduced-motion:reduce){.ds-nav a{transition-duration:1ms}}"
+    },
+    {
+      "name": "Urgency chip",
+      "kind": "chip",
+      "refersTo": "chip-urgent",
+      "description": "Compact board urgency label; a noninteractive semantic marker.",
+      "html": "<span class=\"ds-urgent\">Urgent</span>",
+      "css": ".ds-urgent{display:inline-flex;align-items:center;white-space:nowrap;padding:3px 6px;border-radius:10px;background:var(--status-orange, oklch(0.96 0.04 70));color:var(--status-orange-foreground, oklch(0.48 0.13 55));font-family:\"Inter\", ui-sans-serif, system-ui, sans-serif;font-size:10px;font-weight:500;line-height:1.4}@media(max-width:700px){.ds-urgent{font-size:11px}}"
+    },
+    {
+      "name": "Repair board card",
+      "kind": "card",
+      "refersTo": "card-board",
+      "description": "Opaque case surface with compact title and metadata hierarchy; example content is illustrative.",
+      "html": "<article class=\"ds-case\"><span class=\"ds-case-meta\">Illustrative case · Roofing</span><a class=\"ds-case-title\" href=\"#case\">Roof repair requires scaffold access</a><p class=\"ds-case-address\">Property address</p><span class=\"ds-case-chip\">Urgent</span><footer>Awaiting assignment</footer></article>",
+      "css": ".ds-case{max-width:260px;padding:12px;border-radius:10px;background:oklch(0.998 0.001 220);color:var(--foreground, oklch(0.25 0.014 250));font-family:\"Inter\", ui-sans-serif, system-ui, sans-serif;box-shadow:0 3px 7px oklch(0.3 0.015 220 / 0.045);transition:box-shadow 0.2s,transform 0.2s}.ds-case:hover{transform:translateY(-2px);box-shadow:0 8px 17px oklch(0.3 0.02 220 / 0.1)}.ds-case-meta{font-size:10px;line-height:1.4;color:var(--muted-foreground, oklch(0.48 0.018 250))}.ds-case-title{display:block;margin-top:9px;color:inherit;font-size:13px;font-weight:500;line-height:1.5;text-decoration:none;overflow-wrap:anywhere}.ds-case-title:hover{color:var(--primary, oklch(0.49 0.1 162))}.ds-case-title:focus-visible{outline:2px solid var(--ring, oklch(0.49 0.1 162));outline-offset:4px;}.ds-case-address{font-size:10px;line-height:1.45;color:var(--muted-foreground, oklch(0.48 0.018 250));margin:15px 0 13px}.ds-case-chip{display:inline-flex;padding:3px 6px;border-radius:10px;background:var(--status-orange, oklch(0.96 0.04 70));color:var(--status-orange-foreground, oklch(0.48 0.13 55));font-size:10px;font-weight:500;line-height:1.4}.ds-case footer{margin-top:15px;padding-top:11px;border-top:1px solid oklch(0.93 0.006 220);font-size:10px;line-height:1.5;color:var(--muted-foreground, oklch(0.48 0.018 250))}@media(max-width:700px){.ds-case{padding:16px}.ds-case-title{font-size:15px}.ds-case-meta,.ds-case-address,.ds-case-chip,.ds-case footer{font-size:11px}}@media(prefers-reduced-motion:reduce){.ds-case{transition:none}.ds-case:hover{transform:none}}"
+    },
+    {
+      "name": "Workflow evidence glass",
+      "kind": "custom",
+      "refersTo": "workflow-evidence",
+      "description": "Illustrative evidence layer over the architectural story; the action line is explanatory text.",
+      "html": "<section class=\"ds-evidence-backdrop\"><div class=\"ds-evidence\"><div>Tenant report</div><p>Water comes through the bedroom ceiling when it rains.</p><strong>Clarify safety &amp; access</strong></div></section>",
+      "css": ".ds-evidence-backdrop{padding:24px;background:oklch(0.17 0.008 240);font-family:\"Inter\", sans-serif}.ds-evidence{padding:20px 24px;border:1px solid oklch(0.75 0.018 170 / 0.22);border-radius:14px;color:oklch(0.95 0.005 220);background:linear-gradient(140deg,oklch(0.47 0.018 175 / 0.32),oklch(0.23 0.01 240 / 0.85));backdrop-filter:blur(24px);box-shadow:inset 0 1px oklch(0.95 0.01 175 / 0.18),0 18px 40px oklch(0.08 0.005 240 / 0.35)}.ds-evidence>div{font-size:11px;color:oklch(0.74 0.012 220)}.ds-evidence p{font-size:14px;line-height:1.6;margin:12px 0 16px}.ds-evidence strong{display:block;border-top:1px solid oklch(0.43 0.012 220 / 0.55);padding-top:12px;font-size:12px;font-weight:500;color:oklch(0.8 0.1 165)}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Graphite, titanium and glass",
+    "overview": "The approved graphite-and-mint hero remains the visual anchor. The system pairs this dark architectural presentation with a satin titanium workspace, graphite grouped navigation and restrained emerald emphasis. Metal reflections define the major surfaces; glass gives evidence and floating chrome a distinct layer.\n\nWorking information stays legible on pale cards with a compact hierarchy. The portfolio panel, attention inbox and visit rail establish the scan order above the repair board. Materials support the relationship between evidence, decisions and outcomes without changing the meaning of operational states.",
+    "keyCharacteristics": [
+      "Preserved graphite-and-mint hero with silver calls to action.",
+      "Satin workspace, graphite navigation and opaque case cards.",
+      "Compact operational hierarchy with explicit state labels.",
+      "Scroll-linked architectural story with manual chapters and a diagram alternative."
+    ],
+    "rules": [
+      {
+        "name": "The Semantic Color Rule",
+        "body": "Keep status and urgency colors tied to their existing labels. Mint emphasis does not imply completion or model readiness.",
+        "section": "colors"
+      },
+      {
+        "name": "The Compact Hierarchy Rule",
+        "body": "Use the implemented surface hierarchy: the dashboard includes 10–13px metadata and card text, while narrative copy is larger. Do not claim a universal 14–16px minimum.",
+        "section": "typography"
+      },
+      {
+        "name": "The Material Boundary Rule",
+        "body": "Use glass for the illustrative evidence layer and floating chrome. Keep operational case content on opaque paper surfaces.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do preserve the approved hero composition, copy, graphite palette, mint emphasis and silver actions.",
+      "Do reuse root semantic tokens for portal menus, dialogs and other detached surfaces.",
+      "Do preserve visible labels for status, urgency, loading, error, empty and archival-sample states.",
+      "Do distinguish portfolio totals from loaded queue counts and visits shown.",
+      "Do keep chapter controls, Diagram view and reduced-motion behavior available.",
+      "Do keep historical evaluation evidence dated and separate from live serving status."
+    ],
+    "donts": [
+      "Don't put real repair actions or model calls behind scrolling or the homepage story.",
+      "Don't treat an agent proposal, approval, executed action, completed visit and resolved case as interchangeable.",
+      "Don't restyle the approved hero through the workflow or operations stylesheets.",
+      "Don't convert the compact dashboard into a universal typography rule for all surfaces.",
+      "Don't describe the candidate adapter as ready, deployed or independently benchmarked on the strength of the historical internal evaluation.",
+      "Don't add animation that blocks page scrolling or hides chapter controls on short screens."
+    ]
+  }
+}
