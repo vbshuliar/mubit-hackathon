@@ -391,7 +391,7 @@ export function CategoryBreakdownDonut({
             : "No categorised cases in the selected range."}
         </p>
       ) : (
-        <div className="mt-3 flex items-center gap-5">
+        <div className="mt-3 flex flex-wrap items-center gap-5">
           {/* 160px, not the old 96px. The wedge angles are the entire
            * point of a donut and they were being compared at the size of
            * a favicon inside a 440-690px card; the hub scales with it
@@ -412,7 +412,7 @@ export function CategoryBreakdownDonut({
           {/* The legend rows ARE the interactive/accessible surface -- a
            * clickable conic-gradient wedge can't carry a keyboard-reachable
            * accessible name, these buttons can. */}
-          <ul className="flex-1 space-y-1 text-micro">
+          <ul className="min-w-[180px] flex-1 space-y-1 text-micro">
             {data.map((d, index) => {
               const active = selectedTrade === d.trade;
               return (

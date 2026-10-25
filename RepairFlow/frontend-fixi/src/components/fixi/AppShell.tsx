@@ -1,3 +1,4 @@
+import "./operations.css";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
@@ -25,13 +26,13 @@ import { cn } from "@/lib/utils";
 // model; they now do, so the reference navigation is restored in full and
 // in the reference's own order.
 const nav = [
-  { label: "Overview", icon: Home, to: "/" as const, exact: true },
+  { label: "Overview", icon: Home, to: "/overview" as const, exact: true },
   { label: "Maintenance", icon: Wrench, to: "/maintenance" as const },
+  { label: "Messages", icon: MessageSquare, to: "/messages" as const },
   { label: "Properties", icon: Building2, to: "/properties" as const },
   { label: "Contractors", icon: HardHat, to: "/contractors" as const },
   { label: "Tenants", icon: Users, to: "/tenants" as const },
   { label: "Insights", icon: BarChart3, to: "/insights" as const },
-  { label: "Messages", icon: MessageSquare, to: "/messages" as const },
   { label: "Reports", icon: FileText, to: "/reports" as const },
 ];
 
@@ -78,36 +79,45 @@ function SidebarNav({
 }) {
   return (
     <nav className="mt-7 flex flex-col gap-1" aria-label="Main">
-      {nav.map((item) => {
+      {nav.map((item, index) => {
         const isActive = item.exact
           ? pathname === item.to
           : pathname === item.to || pathname.startsWith(`${item.to}/`);
         return (
-          <Link
-            key={item.label}
-            to={item.to}
-            onClick={onNavigate}
-            aria-current={isActive ? "page" : undefined}
-            className={cn(
-              "flex h-10 items-center gap-3 rounded-lg px-3 text-strong font-medium transition-colors",
-              isActive
-                ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                : "text-sidebar-foreground hover:bg-sidebar-accent",
+          <div key={item.label}>
+            {[0, 3, 6].includes(index) && (
+              <p className="nav-group">
+                {index === 0 ? "Workspace" : index === 3 ? "Portfolio" : "Analysis"}
+              </p>
             )}
-          >
-            <item.icon className="h-4 w-4" strokeWidth={1.9} />
-            {item.label}
-            {/* The reference shows a hardcoded "3" here. This is the
-             * real unread count and disappears at zero rather than
-             * advertising unread mail that does not exist. */}
-            {item.label === "Messages" && unreadCount > 0 && (
-              <span className="ml-auto rounded-full bg-status-green px-2 py-0.5 text-micro font-semibold text-status-green-foreground">
-                {unreadCount > 99 ? "99+" : unreadCount}
-              </span>
-            )}
-          </Link>
+            <Link
+              to={item.to}
+              onClick={onNavigate}
+              aria-current={isActive ? "page" : undefined}
+              className={cn(
+                "flex h-10 items-center gap-3 rounded-lg px-3 text-strong font-medium transition-colors",
+                isActive
+                  ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                  : "text-sidebar-foreground hover:bg-sidebar-accent",
+              )}
+            >
+              <item.icon className="h-4 w-4" strokeWidth={1.9} />
+              {item.label}
+              {/* The reference shows a hardcoded "3" here. This is the
+               * real unread count and disappears at zero rather than
+               * advertising unread mail that does not exist. */}
+              {item.label === "Messages" && unreadCount > 0 && (
+                <span className="ml-auto rounded-full bg-status-green px-2 py-0.5 text-micro font-semibold text-status-green-foreground">
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </span>
+              )}
+            </Link>
+          </div>
         );
       })}
+      <Link to="/" onClick={onNavigate} className="preview-return">
+        Product preview <span aria-hidden="true">↗</span>
+      </Link>
     </nav>
   );
 }
@@ -123,7 +133,7 @@ function AccountRow({ username }: { username: string }) {
       </div>
       <div className="min-w-0 leading-tight">
         <div className="truncate text-xs font-semibold">{username}</div>
-        <div className="text-micro text-muted-foreground">Signed in</div>
+        <div className="text-micro text-muted-foreground">Operator workspace</div>
       </div>
     </div>
   );
@@ -213,13 +223,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <div className="flex min-h-screen w-full bg-background font-sans text-foreground antialiased">
+    <div className="fixi-app flex min-h-screen w-full bg-background font-sans text-foreground antialiased">
+      <a href="#main-content" className="skip-link">
+        Skip to content
+      </a>
       {/* print:hidden here rather than in each printable page: the Reports
        * print view needs the chrome gone, and a route-scoped stylesheet
        * reaching up into the shell to hide it is the kind of action at a
        * distance that breaks the next time the shell changes. */}
       <aside
-        className="sticky top-0 hidden h-screen w-[218px] shrink-0 flex-col border-r border-sidebar-border bg-sidebar px-3.5 py-4 print:hidden lg:flex"
+        className="fixi-sidebar sticky top-0 hidden h-screen w-[232px] shrink-0 flex-col border-r border-sidebar-border bg-sidebar px-3.5 py-4 print:hidden lg:flex"
         style={{ viewTransitionName: "app-sidebar" }}
       >
         <FixiLogo />
@@ -241,7 +254,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <Dialog.Root open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 z-50 bg-foreground/25 backdrop-blur-[1px] lg:hidden" />
-          <Dialog.Content className="fixed inset-y-0 left-0 z-50 flex h-screen w-[248px] max-w-[82vw] flex-col overflow-y-auto border-r border-sidebar-border bg-sidebar px-3.5 py-4 shadow-panel lg:hidden">
+          <Dialog.Content className="fixi-sidebar fixed inset-y-0 left-0 z-50 flex h-screen w-[248px] max-w-[82vw] flex-col overflow-y-auto border-r border-sidebar-border bg-sidebar px-3.5 py-4 shadow-panel lg:hidden">
             <Dialog.Title className="sr-only">Navigation</Dialog.Title>
             <Dialog.Description className="sr-only">
               Jump to another part of Fixi, or check the AI agent&apos;s status and your account.
@@ -278,7 +291,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
          * alignment used to be asserted here but was false on the ticket
          * page, which had no container at all (docs/27). */}
         <div
-          className="mx-auto w-full max-w-page px-6 pt-4 print:hidden xl:px-7"
+          className="app-utility mx-auto w-full max-w-page px-6 pt-4 print:hidden xl:px-7"
           style={{ viewTransitionName: "app-utility-bar" }}
         >
           <UtilityBar onOpenMenu={() => setMobileNavOpen(true)} />
@@ -288,7 +301,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
          * the utility bar are their own snapshot groups, so they morph
          * in place (the only visible change being the active nav pill
          * cross-fading), and only `page-content` actually travels. */}
-        <div style={{ viewTransitionName: "page-content" }}>{children}</div>
+        <div id="main-content" tabIndex={-1} style={{ viewTransitionName: "page-content" }}>
+          {children}
+        </div>
       </main>
     </div>
   );
@@ -319,7 +334,9 @@ export function PageContainer({
             <p className="mt-1 max-w-prose-fixi text-strong text-muted-foreground">{description}</p>
           ) : null}
         </div>
-        {actions ? <div className="flex shrink-0 items-center gap-2">{actions}</div> : null}
+        {actions ? (
+          <div className="flex min-w-0 flex-wrap items-center gap-2">{actions}</div>
+        ) : null}
       </div>
       <div className="mt-6">{children}</div>
     </div>
@@ -328,7 +345,7 @@ export function PageContainer({
 
 export function Card({ className, children }: { className?: string; children: React.ReactNode }) {
   return (
-    <div className={cn("rounded-xl border border-border bg-card shadow-card", className)}>
+    <div className={cn("min-w-0 rounded-xl border border-border bg-card shadow-card", className)}>
       {children}
     </div>
   );

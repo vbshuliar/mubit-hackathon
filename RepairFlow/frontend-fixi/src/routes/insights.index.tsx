@@ -346,7 +346,7 @@ function InsightsPage() {
            * 1097px its own plot went back to 5.3:1, so the width goes
            * to the bar spacing inside the card instead.)
            */
-          <div className="mt-4 grid gap-4 xl:grid-cols-2 2xl:grid-cols-3">
+          <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-2 2xl:grid-cols-3">
             <CaseVolumeChart
               data={data.case_volume_by_month ?? []}
               selectedMonth={drilldown?.key.startsWith("month:") ? drilldown.key.slice(6) : null}

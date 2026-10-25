@@ -106,7 +106,7 @@ function PropertiesPage() {
           <div>
             <h1 className="text-title font-bold tracking-tight">Properties</h1>
             <p className="mt-1 text-strong text-muted-foreground">
-              Every property in this portfolio, its current tenants and open cases.
+              Properties, tenants and open repairs.
             </p>
           </div>
           <Button onClick={() => setDialogOpen(true)}>
@@ -115,12 +115,12 @@ function PropertiesPage() {
         </div>
 
         <div className="mt-5 flex flex-wrap items-center gap-3">
-          <label className="flex h-9 w-[320px] max-w-[60vw] items-center gap-2 rounded-xl border border-border bg-card px-3 text-muted-foreground shadow-card">
+          <label className="flex h-9 w-[360px] max-w-full items-center gap-2 rounded-xl border border-border bg-card px-3 text-muted-foreground shadow-card">
             <Search className="h-4 w-4 shrink-0" />
             <input
               aria-label="Search properties"
               className="min-w-0 flex-1 bg-transparent text-xs text-foreground outline-none placeholder:text-muted-foreground"
-              placeholder="Search address, postcode or landlord reference…"
+              placeholder="Search address, postcode or reference…"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
             />

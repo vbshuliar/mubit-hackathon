@@ -54,7 +54,7 @@ function MessagesIndexPage() {
     <AppShell>
       <PageContainer
         title="Messages"
-        description="Every conversation thread, one per case, across tenants, contractors and operators."
+        description="Tenant, contractor and operator conversations, grouped by case."
       >
         <div className="grid h-[calc(100dvh-13rem)] min-h-[560px] gap-4 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)]">
           <Card className="flex flex-col overflow-hidden p-0">
@@ -72,11 +72,11 @@ function MessagesIndexPage() {
            * /messages/$caseId instead of splitting this same viewport. */}
           {/* Not a Card: this was a bordered box containing EmptyState's
            * own bordered box, for a placeholder occupying 5% of the pane. */}
-          <div className="hidden items-center justify-center rounded-xl border border-dashed border-border lg:flex">
+          <div className="hidden items-center justify-center lg:flex">
             <EmptyState
               icon={MessageSquare}
               title="Select a conversation"
-              description="Choose a thread from the list to read the full conversation and reply."
+              description="Choose a case to read and reply."
             />
           </div>
         </div>

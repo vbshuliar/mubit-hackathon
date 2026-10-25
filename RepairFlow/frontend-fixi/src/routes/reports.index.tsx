@@ -207,9 +207,9 @@ function ReportsPage() {
       <AppShell>
         <PageContainer
           title="Reports"
-          description="Database-derived maintenance, spend, resolution-time and recurring-issue reporting."
+          description="Maintenance, costs and resolution times from recorded case data."
           actions={
-            <div className="flex items-center gap-2 print:hidden">
+            <div className="flex flex-wrap items-center gap-2 print:hidden">
               <button
                 type="button"
                 onClick={() => window.print()}
@@ -308,7 +308,7 @@ function ReportsPage() {
               />
               <SectionPanel
                 title="Spend"
-                subtitle="Quoted and actual money, kept separate -- they are never summed together."
+                subtitle="Quoted and actual amounts, reported separately."
                 section={summary.data.spend}
               />
               <SectionPanel
@@ -318,7 +318,7 @@ function ReportsPage() {
               />
               <SectionPanel
                 title="Recurring issues"
-                subtitle="Trades/issues that keep coming back at the same properties."
+                subtitle="Repeated issues at the same property."
                 section={summary.data.recurringIssues}
               />
               {/* The case-level rows every section above aggregates, and
@@ -326,7 +326,7 @@ function ReportsPage() {
                * never a set of rows nobody can see on screen first. */}
               <SectionPanel
                 title="Case detail"
-                subtitle="Every case behind the figures above. This is what Export CSV contains."
+                subtitle="Cases included in the CSV export."
                 section={summary.data.cases}
               />
             </div>

@@ -34,8 +34,8 @@ import { cn } from "@/lib/utils";
 //
 // Spacing is deliberately generous. The canvas pans and zooms, so packing
 // nodes tightly buys nothing and costs legibility.
-const COLUMN_WIDTH = 300;
-const ROW_HEIGHT = 132;
+const COLUMN_WIDTH = 340;
+const ROW_HEIGHT = 170;
 const LABEL_OFFSET = 46;
 
 // Declared node sizes, used for the fit before the real ones are known.
@@ -55,10 +55,10 @@ const LABEL_OFFSET = 46;
 // box used only until the measured one arrives, so the first fit is
 // right even when measurement is late or never comes.
 //
-// STEP_W must track `w-56` on StepNode below. The height is a typical
+// STEP_W must track `w-64` on StepNode below. The height is a typical
 // card, not a maximum: it only has to make the box approximately right.
-const STEP_W = 224;
-const STEP_H = 104;
+const STEP_W = 256;
+const STEP_H = 140;
 const LABEL_W = 56;
 const LABEL_H = 18;
 
@@ -107,7 +107,7 @@ function StepNode({ data }: NodeProps<StepNodeType>) {
   return (
     <div
       className={cn(
-        "w-56 rounded-xl border-2 bg-card p-3 text-left shadow-card",
+        "w-64 rounded-xl border-2 bg-card p-3 text-left shadow-card",
         isNow ? NOW_BORDER[step.tone ?? "waiting"] : KIND_BORDER[step.kind],
         data.selected && "ring-2 ring-ring",
         step.runId && "cursor-pointer",

@@ -194,7 +194,7 @@ export function CaseProgress({ snapshot }: { snapshot: CaseSnapshot }) {
   const { steps, banner } = useMemo(() => deriveCaseProgress(snapshot), [snapshot]);
 
   return (
-    <Card className="mt-4 px-4 py-3">
+    <Card className="case-progress mt-4 px-4 py-3">
       {banner && (
         <div
           className={cn(
@@ -209,7 +209,7 @@ export function CaseProgress({ snapshot }: { snapshot: CaseSnapshot }) {
           ) : (
             <Ban className="h-3.5 w-3.5 shrink-0" />
           )}
-          <span className="line-clamp-1" title={banner.text}>
+          <span className="min-w-0" title={banner.text}>
             {banner.text}
           </span>
         </div>

@@ -207,10 +207,10 @@ function TenantProfilePage() {
                     key={cs.id}
                     to="/maintenance/tickets/$ticketId/{-$section}"
                     params={{ ticketId: cs.id, section: undefined }}
-                    className="flex items-center justify-between gap-3 px-4 py-3 text-strong transition-colors hover:bg-muted/60"
+                    className="flex flex-col items-start justify-between gap-2 px-4 py-3 text-strong sm:flex-row sm:items-center transition-colors hover:bg-muted/60"
                   >
                     <div className="min-w-0">
-                      <div className="truncate font-medium">
+                      <div className="line-clamp-2 font-medium">
                         {cs.case_number ? `#${cs.case_number} — ` : ""}
                         {cs.title}
                       </div>

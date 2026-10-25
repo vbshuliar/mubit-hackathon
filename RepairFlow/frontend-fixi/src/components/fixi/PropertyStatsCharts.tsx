@@ -134,7 +134,7 @@ export function QuotedByTradeDonut({ data }: { data: TradeQuoteBreakdown[] }) {
       {data.length === 0 ? (
         <p className="mt-6 py-6 text-center text-xs text-muted-foreground">No quoted work yet.</p>
       ) : (
-        <div className="mt-3 flex items-center gap-5">
+        <div className="mt-3 flex flex-wrap items-center gap-5">
           {/* 160px, up from 96px: the segment angles are what this mark
            * exists to compare, and they were being compared at favicon
            * size in a ~440px card. The hub total stays at text-section
@@ -152,7 +152,7 @@ export function QuotedByTradeDonut({ data }: { data: TradeQuoteBreakdown[] }) {
               <span className="text-micro text-muted-foreground">Total quoted</span>
             </div>
           </div>
-          <ul className="flex-1 space-y-1.5 text-micro">
+          <ul className="min-w-[130px] flex-1 space-y-1.5 text-micro">
             {data.map((d, index) => (
               <li key={d.trade} className="flex items-center">
                 <span
@@ -202,7 +202,7 @@ export function QuotedByYearBars({ data }: { data: YearlyQuoteTotal[] }) {
           <b className="text-section font-bold tracking-tight tabular-nums text-foreground">
             {formatPence(only.quoted_pence)}
           </b>{" "}
-          quoted in {only.year}. There is nothing to compare it against yet.
+          quoted in {only.year}.
         </p>
       ) : (
         <>

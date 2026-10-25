@@ -190,7 +190,7 @@ function DocumentsPage() {
             <EmptyState
               icon={FileText}
               title="No documents uploaded for this property yet"
-              description="Lease agreements, gas safety certificates, EPCs and photos live here -- upload one above."
+              description="Upload leases, safety certificates, EPCs or photos above."
             />
           )}
           {items.length > 0 && (

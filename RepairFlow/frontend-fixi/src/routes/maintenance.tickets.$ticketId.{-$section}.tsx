@@ -1,3 +1,4 @@
+import { CaseBlockers } from "@/components/fixi/CaseBlockers";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect } from "react";
 import {
@@ -160,7 +161,7 @@ function CasePage() {
          * wrapping cluster. */}
         <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
           <div className="min-w-0">
-            <div className="flex min-w-0 items-center gap-2">
+            <div className="case-identity flex min-w-0 items-start gap-2">
               <Link
                 to="/maintenance"
                 aria-label="Back to tickets"
@@ -170,10 +171,7 @@ function CasePage() {
                 <ArrowLeft className="h-4 w-4" />
               </Link>
               <UrgencyBadge urgency={c.risk.urgency} />
-              <h1
-                className="line-clamp-1 min-w-0 text-title font-bold tracking-tight"
-                title={c.title}
-              >
+              <h1 className="min-w-0 text-title font-bold tracking-tight" title={c.title}>
                 #{c.case_number} – {c.title}
               </h1>
             </div>
@@ -193,15 +191,13 @@ function CasePage() {
               {/* docs/18 line 34 lists "last updated" as part of the case
                * header. The field was always on the snapshot and never
                * rendered, so nothing on the page said how fresh it was. */}
-              <span>
-                Updated {formatRelative(c.updated_at)} · version {c.version}
-              </span>
+              <span>Updated {formatRelative(c.updated_at)}</span>
             </div>
           </div>
           {/* One wrapping cluster instead of two stacked rows. The
            * "Record an update" trigger moved in here from its own
            * full-width row below the progress rail. */}
-          <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+          <div className="case-actions flex min-w-0 flex-wrap items-center gap-2">
             {snapshot.agent_active && (
               <span className="flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-body font-medium text-muted-foreground shadow-card">
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -215,17 +211,18 @@ function CasePage() {
         </div>
 
         <CaseProgress snapshot={snapshot} />
+        <CaseBlockers snapshot={snapshot} />
 
         <DecisionCard caseId={c.id} pendingActions={snapshot.pending_actions} snapshot={snapshot} />
-        <div className="mt-4 grid gap-4 xl:grid-cols-2">
-          <DemoResponsePanel key={c.id} snapshot={snapshot} />
+        <div className="case-next-step mt-5 grid items-start gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
           <AgentDecisionSummary snapshot={snapshot} />
+          <DemoResponsePanel key={c.id} snapshot={snapshot} />
         </div>
 
         {/* Sticky: the header above is ~300px, so on a long tab the tabs
          * would otherwise scroll out of reach. `-mx-6` lets the border
          * run full-bleed inside the padded container. */}
-        <div className="sticky top-0 z-30 -mx-6 mt-4 border-b border-border bg-background/85 px-6 backdrop-blur xl:-mx-7 xl:px-7">
+        <div className="case-tabs sticky top-0 z-30 -mx-6 mt-4 border-b border-border bg-background/85 px-6 backdrop-blur xl:-mx-7 xl:px-7">
           <div className="flex flex-wrap items-center gap-0.5">
             <SectionLink ticketId={ticketId} section={undefined} active={section === null}>
               Overview
@@ -269,7 +266,7 @@ function CasePage() {
               showViewAll={section === null}
             />
           )}
-          {show("agent") && <AgentActivity snapshot={snapshot} />}
+          {section === "agent" && <AgentActivity snapshot={snapshot} />}
           {section === "work" && (
             <WorkGraph
               workOrders={snapshot.work_orders}
@@ -539,7 +536,7 @@ function SummaryColumn({ snapshot }: { snapshot: CaseSnapshot }) {
       (x.trades.some((t) => neededTrades.has(t as (typeof work_orders)[number]["trade"])) ? 1 : 0);
     return score(b) - score(a);
   });
-  const RELEVANT_CONTRACTOR_LIMIT = 5;
+  const RELEVANT_CONTRACTOR_LIMIT = rankedContractors.length;
   const shownContractors = rankedContractors.slice(0, RELEVANT_CONTRACTOR_LIMIT);
   const hiddenContractorCount = rankedContractors.length - shownContractors.length;
 
@@ -635,8 +632,10 @@ function SummaryColumn({ snapshot }: { snapshot: CaseSnapshot }) {
         )}
       </div>
 
-      <div className="mt-4 border-t border-border pt-4">
-        <Label>Approved contractors</Label>
+      <details className="mt-4 border-t border-border pt-4">
+        <summary className="text-sm font-medium">
+          Approved contractor roster ({approved_contractors.length})
+        </summary>
         {/* The roster the coordinator is allowed to choose from. Distinct
          * from "Assigned contractor" above: a case routinely has several
          * approved suppliers and nobody assigned, which previously looked
@@ -679,7 +678,7 @@ function SummaryColumn({ snapshot }: { snapshot: CaseSnapshot }) {
             {availability.length === 1 ? "" : "s"} on file.
           </p>
         )}
-      </div>
+      </details>
 
       <div className="mt-4 border-t border-border pt-4">
         <Label>Contractor reports</Label>
@@ -710,8 +709,8 @@ function SummaryColumn({ snapshot }: { snapshot: CaseSnapshot }) {
         )}
       </div>
 
-      <div className="mt-4 border-t border-border pt-4">
-        <Label>Property history</Label>
+      <details className="mt-4 border-t border-border pt-4">
+        <summary className="text-sm font-medium">Property history</summary>
         {propertyHistory.isLoading && <SkeletonCards className="mt-2" count={3} height="h-9" />}
         {propertyHistory.data && (
           <ul className="mt-2 divide-y divide-border rounded-lg border border-border">
@@ -742,7 +741,7 @@ function SummaryColumn({ snapshot }: { snapshot: CaseSnapshot }) {
         >
           View full property history <ArrowRight className="h-3.5 w-3.5" />
         </Link>
-      </div>
+      </details>
     </Card>
   );
 }
