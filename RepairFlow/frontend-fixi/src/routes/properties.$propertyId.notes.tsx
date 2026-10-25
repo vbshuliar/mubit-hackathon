@@ -92,7 +92,7 @@ function NotesPage() {
             <EmptyState
               icon={StickyNote}
               title="No notes recorded for this property yet"
-              description="Notes are operator-authored and editable -- unlike the case timeline, they're not part of the audit record."
+              description="Editable operator notes. These are separate from the case audit record."
             />
           )}
           {items.length > 0 && (

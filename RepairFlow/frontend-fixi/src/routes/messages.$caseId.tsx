@@ -177,9 +177,9 @@ function ThreadDetail({
 
   return (
     <>
-      <div className="flex items-center justify-between gap-3 border-b border-border p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4">
         <div className="min-w-0">
-          <div className="truncate text-section font-semibold">
+          <div className="line-clamp-2 text-section font-semibold">
             {case_title ?? `Case ${caseId}`}
             {case_number !== null && (
               <span className="text-muted-foreground"> · #{case_number}</span>

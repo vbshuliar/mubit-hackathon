@@ -95,7 +95,7 @@ function ContractorsPage() {
     <AppShell>
       <PageContainer
         title="Contractors"
-        description="Only Approved contractors can be assigned to work orders. Pending contractors are unverified research candidates found via web search."
+        description="Only approved contractors can be assigned. Pending candidates are unverified web research."
         actions={
           <ContractorFormDialog
             mode="create"
@@ -153,7 +153,7 @@ function ContractorsPage() {
            * before "Service area" on every row, while "Assigned" took
            * 133px to hold one digit. Capping the card turns the
            * leftover into margin instead of column padding (docs/27). */}
-          <table className="w-full min-w-[820px] table-fixed text-body">
+          <table className="w-full min-w-[1000px] table-fixed text-body">
             <colgroup>
               <col className="w-[56px]" />
               <col />

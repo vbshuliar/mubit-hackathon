@@ -76,7 +76,7 @@ function TenantsPage() {
     <AppShell>
       <PageContainer
         title="Tenants"
-        description="Everyone renting across this portfolio, their contact preferences and open cases."
+        description="Contact preferences and repair cases across your portfolio."
         actions={
           <TenantFormDialog
             mode="create"
@@ -122,7 +122,7 @@ function TenantsPage() {
            * tracks and the card cap it is roughly half that. The avatar
            * column stays -- unlike the contractor hard-hat glyph, the
            * initials differ per row, so it carries information. */}
-          <table className="w-full min-w-[820px] table-fixed text-body">
+          <table className="w-full min-w-[1080px] table-fixed text-body">
             <colgroup>
               <col className="w-[52px]" />
               <col className="w-[220px]" />

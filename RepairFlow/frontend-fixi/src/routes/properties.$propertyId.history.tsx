@@ -1,6 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { ArrowDown, ArrowUp, ArrowUpDown, ChevronRight, Download, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useId, useMemo, useState } from "react";
 import { Metric } from "@/components/fixi/Metric";
 import { AppShell, Card } from "@/components/fixi/AppShell";
 import { Pill } from "@/components/fixi/Badge";
@@ -55,10 +55,8 @@ interface TableUrlState {
   year: number | null;
 }
 
-function readTableStateFromUrl(): TableUrlState {
-  const fallback: TableUrlState = { sort: { field: "date", dir: "desc" }, trade: null, year: null };
-  if (typeof window === "undefined") return fallback;
-  const params = new URLSearchParams(window.location.search);
+function readTableStateFromUrl(search: string): TableUrlState {
+  const params = new URLSearchParams(search);
   const field = readParam(params, "sort");
   const dir = readParam(params, "dir");
   const trade = readParam(params, "trade");
@@ -72,22 +70,6 @@ function readTableStateFromUrl(): TableUrlState {
     trade: (trade as Trade | null) ?? null,
     year: year && Number.isFinite(year) ? year : null,
   };
-}
-
-function writeTableStateToUrl(state: TableUrlState) {
-  if (typeof window === "undefined") return;
-  // Preserves address/postcode (the fallback the header reads -- see
-  // PropertyTabs) and everything else already in the query string; only
-  // sort/trade/year are ever added, changed or removed here.
-  const params = new URLSearchParams(window.location.search);
-  params.set("sort", state.sort.field);
-  params.set("dir", state.sort.dir);
-  if (state.trade) params.set("trade", state.trade);
-  else params.delete("trade");
-  if (state.year) params.set("year", String(state.year));
-  else params.delete("year");
-  const qs = params.toString();
-  window.history.replaceState(null, "", `${window.location.pathname}${qs ? `?${qs}` : ""}`);
 }
 
 const STATUS_RANK: Record<CaseStatus, number> = Object.fromEntries(
@@ -107,16 +89,43 @@ function HistoryPage() {
   const postcode = readParam(searchParams, "postcode");
 
   const history = usePropertyHistory(propertyId);
-  const items = history.data?.items ?? [];
+  const items = useMemo(() => history.data?.items ?? [], [history.data?.items]);
   const propertyStats = usePropertyStats(propertyId);
   const statsData = propertyStats.data;
 
-  const [tableState, setTableState] = useState<TableUrlState>(() => readTableStateFromUrl());
+  const searchStr = useRouterState({ select: (s) => s.location.searchStr });
+  const tableState = useMemo(() => readTableStateFromUrl(searchStr), [searchStr]);
+  // This route intentionally has no search validator. Keep unrelated search
+  // values intact and let the router own history, including back/forward.
+  const navigate = useNavigate() as unknown as (options: {
+    search: (previous: Record<string, unknown>) => Record<string, unknown>;
+    resetScroll: boolean;
+    viewTransition: boolean;
+  }) => Promise<void>;
+  function setTableState(update: (state: TableUrlState) => TableUrlState) {
+    const next = update(tableState);
+    void navigate({
+      search: (previous) => {
+        const params: Record<string, unknown> = {
+          ...previous,
+          sort: next.sort.field,
+          dir: next.sort.dir,
+        };
+        delete params["trade"];
+        delete params["year"];
+        if (next.trade) params["trade"] = next.trade;
+        if (next.year) params["year"] = next.year;
+        return params;
+      },
+      resetScroll: false,
+      viewTransition: false,
+    });
+  }
   const [selected, setSelected] = useState<Set<string>>(new Set());
-
-  useEffect(() => {
-    writeTableStateToUrl(tableState);
-  }, [tableState]);
+  const trades = [...new Set(items.flatMap((h) => (h.trade ? [h.trade] : [])))].sort();
+  const years = [...new Set(items.map((h) => new Date(h.created_at).getFullYear()))]
+    .filter(Number.isFinite)
+    .sort((a, b) => b - a);
 
   const filtered = useMemo(() => {
     return items.filter((h) => {
@@ -156,14 +165,6 @@ function HistoryPage() {
         ? { ...s, sort: { field, dir: s.sort.dir === "asc" ? "desc" : "asc" } }
         : { ...s, sort: { field, dir: "asc" } },
     );
-  }
-
-  function toggleTradeFilter(trade: Trade) {
-    setTableState((s) => ({ ...s, trade: s.trade === trade ? null : trade }));
-  }
-
-  function toggleYearFilter(year: number) {
-    setTableState((s) => ({ ...s, year: s.year === year ? null : year }));
   }
 
   function clearFilters() {
@@ -297,56 +298,74 @@ function HistoryPage() {
             </Card>
           ) : (
             <>
-              <div className="flex flex-col gap-2">
-                <QuotedByTradeDonut data={statsData?.quoted_by_trade ?? []} />
-                {(statsData?.quoted_by_trade.length ?? 0) > 0 && (
-                  <TradeChipRow
-                    trades={statsData!.quoted_by_trade.map((d) => d.trade)}
-                    active={tableState.trade}
-                    onToggle={toggleTradeFilter}
-                  />
-                )}
-              </div>
-              <div className="flex flex-col gap-2">
-                <QuotedByYearBars data={statsData?.quoted_by_year ?? []} />
-                {(statsData?.quoted_by_year.length ?? 0) > 0 && (
-                  <YearChipRow
-                    years={statsData!.quoted_by_year.map((d) => d.year)}
-                    active={tableState.year}
-                    onToggle={toggleYearFilter}
-                  />
-                )}
-              </div>
-              <div className="flex flex-col gap-2">
-                <RecurringIssuesList data={statsData?.recurring_issues ?? []} />
-                {(statsData?.recurring_issues.length ?? 0) > 0 && (
-                  <TradeChipRow
-                    trades={statsData!.recurring_issues.map((d) => d.trade)}
-                    active={tableState.trade}
-                    onToggle={toggleTradeFilter}
-                  />
-                )}
-              </div>
+              <QuotedByTradeDonut data={statsData?.quoted_by_trade ?? []} />
+              <QuotedByYearBars data={statsData?.quoted_by_year ?? []} />
+              <RecurringIssuesList data={statsData?.recurring_issues ?? []} />
             </>
           )}
         </section>
 
+        <section aria-label="History filters" className="mt-5 flex flex-wrap items-end gap-3">
+          <label className="grid gap-1 text-xs font-medium">
+            Trade
+            <select
+              className="history-filter"
+              value={tableState.trade ?? ""}
+              onChange={(e) =>
+                setTableState((s) => ({ ...s, trade: (e.target.value || null) as Trade | null }))
+              }
+            >
+              <option value="">All trades</option>
+              {tableState.trade && !trades.includes(tableState.trade) && (
+                <option value={tableState.trade}>{titleCase(tableState.trade)}</option>
+              )}
+              {trades.map((trade) => (
+                <option key={trade} value={trade}>
+                  {titleCase(trade)}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="grid gap-1 text-xs font-medium">
+            Year
+            <select
+              className="history-filter"
+              value={tableState.year ?? ""}
+              onChange={(e) =>
+                setTableState((s) => ({
+                  ...s,
+                  year: e.target.value ? Number(e.target.value) : null,
+                }))
+              }
+            >
+              <option value="">All years</option>
+              {tableState.year && !years.includes(tableState.year) && (
+                <option value={tableState.year}>{tableState.year}</option>
+              )}
+              {years.map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </select>
+          </label>
+          {hasActiveFilter && (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="flex h-9 items-center gap-1.5 rounded-lg border border-border bg-card px-3 text-xs font-medium hover:bg-accent"
+            >
+              <X className="h-3.5 w-3.5" /> Clear filters
+            </button>
+          )}
+        </section>
+
         <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs">
-          <div className="text-muted-foreground">
+          <div className="text-muted-foreground" role="status">
             Showing <b className="text-foreground">{sorted.length}</b> of {items.length} case
             {items.length === 1 ? "" : "s"}
             {" · "}
             <b className="text-foreground">{formatPence(filteredQuotedTotal) ?? "£0.00"}</b> quoted
-            on these
-            {hasActiveFilter && (
-              <button
-                type="button"
-                onClick={clearFilters}
-                className="ml-2 inline-flex items-center gap-1 rounded-md border border-border px-2 py-0.5 text-micro font-medium hover:bg-accent"
-              >
-                <X className="h-3 w-3" /> Clear filter
-              </button>
-            )}
           </div>
           {visibleSelected.length > 0 && (
             <button
@@ -359,87 +378,116 @@ function HistoryPage() {
           )}
         </div>
 
-        <Card className="mt-2 overflow-x-auto">
-          <table className="w-full min-w-[950px] text-strong">
-            <thead>
-              <tr className="border-b border-border text-left text-xs text-muted-foreground">
-                <th className="w-10 px-4 py-2.5">
-                  <input
-                    aria-label="Select all visible history rows"
-                    type="checkbox"
-                    className="accent-primary"
-                    checked={allVisibleSelected}
-                    onChange={toggleSelectAllVisible}
-                    disabled={sorted.length === 0}
+        <p className="mt-2 text-xs text-muted-foreground xl:hidden" id="history-scroll-hint">
+          Scroll the table for outcomes, contractors and quotes.
+        </p>
+        <Card className="mt-2 overflow-hidden">
+          <div
+            role="region"
+            aria-label="Property maintenance history"
+            tabIndex={0}
+            className="relative overflow-x-auto"
+            aria-describedby="history-scroll-hint"
+          >
+            <table className="history-table w-full min-w-[1180px] table-fixed text-strong">
+              <caption className="sr-only">
+                Property maintenance history. Select cases to export their complete records.
+              </caption>
+              <colgroup>
+                {[3.5, 10, 22, 9, 13, 18, 13, 8, 3.5].map((width, i) => (
+                  <col key={i} style={{ width: `${width}%` }} />
+                ))}
+              </colgroup>
+              <thead>
+                <tr className="border-b border-border text-left text-xs text-muted-foreground">
+                  <th className="w-10 px-4 py-2.5">
+                    <input
+                      aria-label="Select all visible history rows"
+                      type="checkbox"
+                      className="accent-primary"
+                      checked={allVisibleSelected}
+                      onChange={toggleSelectAllVisible}
+                      disabled={sorted.length === 0}
+                    />
+                  </th>
+                  <SortableTh
+                    field="date"
+                    label="Date"
+                    state={tableState.sort}
+                    onSort={toggleSort}
                   />
-                </th>
-                <SortableTh field="date" label="Date" state={tableState.sort} onSort={toggleSort} />
-                <th className="px-4 py-2.5 font-medium">Issue</th>
-                <SortableTh
-                  field="category"
-                  label="Trade"
-                  state={tableState.sort}
-                  onSort={toggleSort}
-                />
-                <SortableTh
-                  field="status"
-                  label="Status"
-                  state={tableState.sort}
-                  onSort={toggleSort}
-                />
-                <th className="px-4 py-2.5 font-medium">Outcome</th>
-                <th className="px-4 py-2.5 font-medium">Contractor</th>
-                <SortableTh
-                  field="cost"
-                  label="Quoted"
-                  state={tableState.sort}
-                  onSort={toggleSort}
-                />
-                <th className="w-12 px-4 py-2.5 text-center font-medium">View</th>
-              </tr>
-            </thead>
-            <tbody>
-              {history.isLoading && (
-                <tr>
-                  <td colSpan={9} className="px-4 py-8 text-center text-xs text-muted-foreground">
-                    Loading history…
-                  </td>
+                  <th className="px-4 py-2.5 font-medium">Issue</th>
+                  <SortableTh
+                    field="category"
+                    label="Trade"
+                    state={tableState.sort}
+                    onSort={toggleSort}
+                  />
+                  <SortableTh
+                    field="status"
+                    label="Status"
+                    state={tableState.sort}
+                    onSort={toggleSort}
+                  />
+                  <th className="px-4 py-2.5 font-medium">Outcome</th>
+                  <th className="px-4 py-2.5 font-medium">Contractor</th>
+                  <SortableTh
+                    field="cost"
+                    label="Quoted"
+                    state={tableState.sort}
+                    onSort={toggleSort}
+                  />
+                  <th className="w-12 px-4 py-2.5 text-center font-medium">
+                    <span className="sr-only">View</span>
+                  </th>
                 </tr>
-              )}
-              {history.isError && (
-                <tr>
-                  <td colSpan={9} className="px-4 py-8 text-center text-xs text-destructive">
-                    Could not load property history.
-                  </td>
-                </tr>
-              )}
-              {!history.isLoading && !history.isError && items.length === 0 && (
-                <tr>
-                  <td colSpan={9} className="px-4 py-8 text-center text-xs text-muted-foreground">
-                    No recorded cases for this property yet.
-                  </td>
-                </tr>
-              )}
-              {!history.isLoading &&
-                !history.isError &&
-                items.length > 0 &&
-                sorted.length === 0 && (
+              </thead>
+              <tbody>
+                {history.isLoading && (
                   <tr>
                     <td colSpan={9} className="px-4 py-8 text-center text-xs text-muted-foreground">
-                      No cases match the current filter.
+                      Loading history…
                     </td>
                   </tr>
                 )}
-              {sorted.map((h) => (
-                <HistoryRow
-                  key={h.case_id}
-                  item={h}
-                  selected={selected.has(h.case_id)}
-                  onToggle={() => toggleRow(h.case_id)}
-                />
-              ))}
-            </tbody>
-          </table>
+                {history.isError && (
+                  <tr>
+                    <td colSpan={9} className="px-4 py-8 text-center text-xs text-destructive">
+                      Could not load property history.
+                    </td>
+                  </tr>
+                )}
+                {!history.isLoading && !history.isError && items.length === 0 && (
+                  <tr>
+                    <td colSpan={9} className="px-4 py-8 text-center text-xs text-muted-foreground">
+                      No recorded cases for this property yet.
+                    </td>
+                  </tr>
+                )}
+                {!history.isLoading &&
+                  !history.isError &&
+                  items.length > 0 &&
+                  sorted.length === 0 && (
+                    <tr>
+                      <td
+                        colSpan={9}
+                        className="px-4 py-8 text-center text-xs text-muted-foreground"
+                      >
+                        No cases match the current filter.
+                      </td>
+                    </tr>
+                  )}
+                {sorted.map((h) => (
+                  <HistoryRow
+                    key={h.case_id}
+                    item={h}
+                    selected={selected.has(h.case_id)}
+                    onToggle={() => toggleRow(h.case_id)}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
         </Card>
       </PropertyTabs>
     </AppShell>
@@ -459,11 +507,18 @@ function SortableTh({
 }) {
   const active = state.field === field;
   return (
-    <th className="px-4 py-2.5 font-medium">
+    <th
+      className="px-4 py-2.5 font-medium"
+      aria-sort={active ? (state.dir === "asc" ? "ascending" : "descending") : "none"}
+    >
       <button
         type="button"
         onClick={() => onSort(field)}
-        className={cn("flex items-center gap-1 hover:text-foreground", active && "text-foreground")}
+        className={cn(
+          "flex items-center gap-1 hover:text-foreground",
+          field === "cost" && "ml-auto",
+          active && "text-foreground",
+        )}
       >
         {label}
         {active ? (
@@ -489,116 +544,91 @@ function HistoryRow({
   selected: boolean;
   onToggle: () => void;
 }) {
+  const [expanded, setExpanded] = useState(false);
+  const detailsId = useId();
   return (
-    <tr className="border-b border-border last:border-0 transition-colors hover:bg-muted/60">
-      <td className="px-4 py-3">
-        <input
-          aria-label={`Select ${h.title}, ${formatDate(h.created_at)}`}
-          type="checkbox"
-          className="accent-primary"
-          checked={selected}
-          onChange={onToggle}
-        />
-      </td>
-      <td className="px-4 py-3 text-muted-foreground">{formatDate(h.created_at)}</td>
-      <td className="max-w-sm truncate px-4 py-3 font-medium" title={h.title}>
-        {h.title}
-      </td>
-      <td className="px-4 py-3 text-muted-foreground">{h.trade ? titleCase(h.trade) : "—"}</td>
-      <td className="px-4 py-3">
-        <Pill tone={statusTone(h.status)}>{STATUS_LABEL[h.status] ?? h.status}</Pill>
-      </td>
-      <td className="px-4 py-3 text-muted-foreground">{h.outcome ?? "—"}</td>
-      <td className="px-4 py-3 text-muted-foreground">{h.contractor_name ?? "—"}</td>
-      <td className="px-4 py-3 font-medium">{formatPence(h.quoted_pence) ?? "—"}</td>
-      <td className="px-4 py-3">
-        <Link
-          to="/maintenance/tickets/$ticketId/{-$section}"
-          params={{ ticketId: h.case_id, section: undefined }}
-          className="inline-flex rounded-md p-1 text-muted-foreground hover:bg-accent hover:text-foreground"
-        >
-          <ChevronRight className="h-4 w-4" />
-        </Link>
-      </td>
-    </tr>
-  );
-}
-
-// Same trade -> tone mapping PropertyStatsCharts.tsx uses internally (not
-// exported from there, so re-declared here) -- keeps these chip rows
-// colour-matched to the donut segments/recurring-issue badges they sit
-// under. PropertyStatsCharts.tsx is reused unmodified per the task brief, so
-// this drill-down control lives directly beneath each chart card rather
-// than inside it.
-const TRADE_TONE: Record<Trade, "blue" | "purple" | "amber" | "orange" | "gray"> = {
-  ROOFING: "blue",
-  PLUMBING: "purple",
-  ELECTRICAL: "amber",
-  SCAFFOLDING: "orange",
-  OTHER: "gray",
-};
-
-/** Clickable legend chips mirroring a chart's trade segments -- clicking one
- * filters the table below to that trade; clicking the active one clears it.
- * De-duplicates trades (recurring-issues and quoted-by-trade both list one
- * chip per trade). */
-function TradeChipRow({
-  trades,
-  active,
-  onToggle,
-}: {
-  trades: Trade[];
-  active: Trade | null;
-  onToggle: (trade: Trade) => void;
-}) {
-  const unique = Array.from(new Set(trades));
-  return (
-    <div className="flex flex-wrap gap-1.5 px-1">
-      {unique.map((trade) => (
-        <button
-          key={trade}
-          type="button"
-          onClick={() => onToggle(trade)}
-          aria-pressed={active === trade}
-          className={cn(
-            "rounded-md transition-opacity",
-            active !== null && active !== trade && "opacity-40",
+    <Fragment>
+      <tr
+        className={cn(
+          "border-b border-border transition-colors hover:bg-muted/60",
+          selected && "bg-selected",
+        )}
+      >
+        <td>
+          <input
+            aria-label={`Select ${h.title}, ${formatDate(h.created_at)}`}
+            type="checkbox"
+            className="accent-primary"
+            checked={selected}
+            onChange={onToggle}
+          />
+        </td>
+        <td className="tabular-nums text-muted-foreground">{formatDate(h.created_at)}</td>
+        <td className="font-medium">
+          <Link
+            to="/maintenance/tickets/$ticketId/{-$section}"
+            params={{ ticketId: h.case_id, section: undefined }}
+            className="line-clamp-2 hover:underline"
+          >
+            {h.title}
+          </Link>
+        </td>
+        <td className="text-muted-foreground">{h.trade ? titleCase(h.trade) : "—"}</td>
+        <td>
+          <Pill tone={statusTone(h.status)}>{STATUS_LABEL[h.status] ?? h.status}</Pill>
+        </td>
+        <td>
+          <p className="line-clamp-2 text-muted-foreground">{h.outcome ?? "Not recorded"}</p>
+          <button
+            type="button"
+            aria-expanded={expanded}
+            aria-controls={detailsId}
+            aria-label={`${expanded ? "Hide" : "Read"} details for ${h.title}`}
+            onClick={() => setExpanded(!expanded)}
+            className="mt-1 min-h-7 text-xs font-medium text-primary underline underline-offset-4"
+          >
+            {expanded ? "Hide details" : "Read details"}
+          </button>
+        </td>
+        <td className="text-muted-foreground">
+          <span className="line-clamp-2">{h.contractor_name ?? "—"}</span>
+          {h.contractor_name?.includes("SIMULATED") && (
+            <span className="text-micro font-medium">Simulated</span>
           )}
-        >
-          <Pill tone={TRADE_TONE[trade]}>{titleCase(trade)}</Pill>
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function YearChipRow({
-  years,
-  active,
-  onToggle,
-}: {
-  years: number[];
-  active: number | null;
-  onToggle: (year: number) => void;
-}) {
-  return (
-    <div className="flex flex-wrap gap-1.5 px-1">
-      {years.map((year) => (
-        <button
-          key={year}
-          type="button"
-          onClick={() => onToggle(year)}
-          aria-pressed={active === year}
-          className={cn(
-            "rounded-md border px-2 py-0.5 text-micro font-medium transition-colors",
-            active === year
-              ? "border-primary bg-primary/10 text-primary"
-              : "border-border text-muted-foreground hover:bg-accent",
-          )}
-        >
-          {year}
-        </button>
-      ))}
-    </div>
+        </td>
+        <td className="text-right font-medium tabular-nums">
+          {formatPence(h.quoted_pence) ?? "—"}
+        </td>
+        <td>
+          <Link
+            to="/maintenance/tickets/$ticketId/{-$section}"
+            params={{ ticketId: h.case_id, section: undefined }}
+            aria-label={`Open case: ${h.title}`}
+            className="inline-flex rounded-md p-1 text-muted-foreground hover:bg-accent hover:text-foreground"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Link>
+        </td>
+      </tr>
+      <tr hidden={!expanded} id={detailsId} className="border-b border-border bg-muted/40">
+        <td colSpan={9}>
+          <div className="history-details grid gap-4 p-3 sm:grid-cols-[2fr_1fr]">
+            <div>
+              <h3 className="font-semibold">{h.title}</h3>
+              <h4 className="mt-3 text-xs font-medium">Full outcome</h4>
+              <p className="mt-1 whitespace-pre-wrap text-muted-foreground">
+                {h.outcome ?? "No outcome recorded."}
+              </p>
+            </div>
+            <div>
+              <h4 className="text-xs font-medium">Contractor</h4>
+              <p className="mt-1 text-muted-foreground">{h.contractor_name ?? "Not recorded"}</p>
+              <h4 className="mt-3 text-xs font-medium">Quoted</h4>
+              <p className="mt-1 tabular-nums">{formatPence(h.quoted_pence) ?? "Not recorded"}</p>
+            </div>
+          </div>
+        </td>
+      </tr>
+    </Fragment>
   );
 }

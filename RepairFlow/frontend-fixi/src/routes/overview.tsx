@@ -30,8 +30,7 @@ export const Route = createFileRoute("/overview")({
       { title: "Overview — Fixi" },
       {
         name: "description",
-        content:
-          "Portfolio at a glance: what needs attention, upcoming visits and recent activity.",
+        content: "Approvals, blockers and upcoming visits.",
       },
       { property: "og:title", content: "Overview — Fixi" },
     ],
@@ -104,10 +103,7 @@ function OverviewPage() {
 
   return (
     <AppShell>
-      <PageContainer
-        title="Overview"
-        description="Portfolio at a glance: what needs attention, upcoming visits and recent activity."
-      >
+      <PageContainer title="Overview" description="Approvals, blockers and upcoming visits.">
         {overview.isError ? (
           <ErrorState
             {...(overview.error instanceof Error ? { detail: overview.error.message } : {})}
@@ -235,7 +231,7 @@ function OverviewPage() {
             </section>
 
             {/* --- Upcoming appointments / Recent activity --------------- */}
-            <section className="mt-4 grid gap-4 xl:grid-cols-2">
+            <section className="mt-4 grid items-start gap-4 xl:grid-cols-2">
               <Card className="p-4">
                 <div className="flex items-center justify-between gap-2">
                   <h2 className="text-section font-semibold">Upcoming appointments</h2>
@@ -253,7 +249,7 @@ function OverviewPage() {
                     <EmptyState
                       icon={Calendar}
                       title="No upcoming visits"
-                      description="Once a contractor is booked, their next visit shows here. Use + New Ticket above to report an issue."
+                      description="Confirmed contractor visits will appear here."
                       action={
                         <Link
                           to="/maintenance"
@@ -282,7 +278,7 @@ function OverviewPage() {
                     <EmptyState
                       icon={Wrench}
                       title="No activity yet"
-                      description="Case updates will appear here as soon as something happens. Use + New Ticket above to report your first issue."
+                      description="Case updates will appear here."
                       action={
                         <Link
                           to="/maintenance"
@@ -293,7 +289,11 @@ function OverviewPage() {
                       }
                     />
                   ) : (
-                    <ul className="divide-y divide-border">
+                    <ul
+                      aria-label="Recent activity"
+                      tabIndex={0}
+                      className="max-h-[640px] overflow-y-auto divide-y divide-border"
+                    >
                       {activity.map((event) => (
                         <ActivityRow key={event.event_id} event={event} />
                       ))}

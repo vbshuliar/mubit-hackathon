@@ -102,8 +102,11 @@ export function PropertyTabs({
         </div>
       ) : (
         <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
-          <div className="flex items-start gap-4">
-            <PropertyPhoto photoKey={p.photo_key} className="h-[72px] w-32 shrink-0 rounded-lg" />
+          <div className="flex min-w-0 items-start gap-3 sm:gap-4">
+            <PropertyPhoto
+              photoKey={p.photo_key}
+              className="h-16 w-20 shrink-0 rounded-lg sm:h-[72px] sm:w-32"
+            />
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-title font-bold leading-tight">{p.address_line}</h1>
@@ -137,26 +140,28 @@ export function PropertyTabs({
               </div>
             </div>
           </div>
-          <Link
-            to="/properties/$propertyId/details"
-            params={{ propertyId }}
-            title={
-              p.is_archived
-                ? "Sample-history properties can't be edited"
-                : "Edit this property's details"
-            }
-            className={cn(
-              "flex h-9 items-center gap-1.5 rounded-lg border border-border bg-card px-3 text-xs font-medium shadow-card transition-colors",
-              p.is_archived ? "pointer-events-none opacity-50" : "hover:bg-accent",
-            )}
-            aria-disabled={p.is_archived}
-          >
-            <PencilLine className="h-3.5 w-3.5" /> Edit
-          </Link>
+          {active !== "details" && (
+            <Link
+              to="/properties/$propertyId/details"
+              params={{ propertyId }}
+              title={
+                p.is_archived
+                  ? "Sample-history properties can't be edited"
+                  : "Edit this property's details"
+              }
+              className={cn(
+                "flex h-9 items-center gap-1.5 rounded-lg border border-border bg-card px-3 text-xs font-medium shadow-card transition-colors",
+                p.is_archived ? "pointer-events-none opacity-50" : "hover:bg-accent",
+              )}
+              aria-disabled={p.is_archived}
+            >
+              <PencilLine className="h-3.5 w-3.5" /> Edit
+            </Link>
+          )}
         </div>
       )}
 
-      <div className="mt-4 flex gap-6 border-b border-border text-sm">
+      <div className="mt-4 flex gap-5 overflow-x-auto whitespace-nowrap border-b border-border text-sm">
         <Link
           to="/properties/$propertyId/history"
           params={{ propertyId }}
@@ -168,7 +173,7 @@ export function PropertyTabs({
               : "border-transparent text-muted-foreground hover:text-foreground",
           )}
         >
-          Maintenance history
+          History
         </Link>
         <Link
           to="/properties/$propertyId/details"
@@ -181,7 +186,7 @@ export function PropertyTabs({
               : "border-transparent text-muted-foreground hover:text-foreground",
           )}
         >
-          Property details
+          Details
         </Link>
         <Link
           to="/properties/$propertyId/documents"
