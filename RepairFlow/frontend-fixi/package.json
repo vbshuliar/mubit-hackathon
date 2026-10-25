@@ -12,8 +12,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",
-    "test:browser": "playwright test",
-    "capture:redesign": "node scripts/capture-redesign.mjs"
+    "test:browser": "playwright test"
   },
   "overrides": {
     "rolldown": "1.2.1"
