@@ -20,7 +20,7 @@ A tenant reports a leaking roof. A contractor visits and discovers that scaffold
 
 Fixi coordinates that chain. Every report becomes evidence. Every decision becomes a visible action. **Mubit is the learning layer that gives those repeated decisions a path beyond repeatedly calling a large model.**
 
-[Demo walkthrough](RepairFlow/docs/DEMO_WALKTHROUGH.md) · [Run locally](RepairFlow/SETUP.md) · [Application architecture](RepairFlow/README.md) · [Training evidence](RepairFlow/docs/ADAPTER_RECOVERY_PLAN.md)
+[2-minute demo plan](docs/DEMO_SUBMISSION_PLAN.md) · [Interactive walkthrough](RepairFlow/docs/DEMO_WALKTHROUGH.md) · [Run locally](RepairFlow/SETUP.md) · [Application architecture](RepairFlow/README.md) · [Training evidence](RepairFlow/docs/ADAPTER_RECOVERY_PLAN.md)
 
 ## ⚡ The project in 30 seconds
 
@@ -30,7 +30,7 @@ Fixi coordinates that chain. Every report becomes evidence. Every decision becom
 | A short report can change the entire repair plan. | A scope-aware, seven-outcome classification task. | A stable input/output contract gives adaptation a measurable target. |
 | A convincing model response can still be an invalid action. | Policy checks, approvals, dependencies, and visible execution results. | Model optimization stays separate from the rules that protect the workflow. |
 
-**Observed learning signal:** the focused adapter scored **10/12**, compared with **5/12** for base + prompt in Mubit's internal evaluation. **Still pending:** readiness, verified serving, and an independent benchmark. Full context and evidence appear below.
+**Latest observed learning signal:** the second-account focused adapter scored **91.7% (11/12)** in Mubit's internal evaluation, above its **85% quality target**. It remains in Testing because live readiness requires at least **20 judged cases**. **Still pending:** readiness, verified serving, and an independent benchmark. Full context and evidence appear below.
 
 ## 🎯 The problem: automate the follow-through
 
@@ -83,7 +83,7 @@ flowchart LR
 
 **A real workflow creates the learning opportunity.** Classification is attached to an operational problem: a report about scaffolding must be interpreted against the assigned scope, and cannot automatically mean that the roof repair is complete.
 
-**One agent, a focused optimization target.** We initially explored broad next-action coordination, then narrowed adaptation to report interpretation. Recorded coordinator adapters scored only **7.7%** and **13.3%**; the focused classifier reached **83.3%** in a different task evaluation. These are not comparable controlled benchmarks, but they explain the engineering choice to specialize. [Experiment history →](RepairFlow/docs/ADAPTER_RECOVERY_PLAN.md)
+**One agent, a focused optimization target.** We initially explored broad next-action coordination, then narrowed adaptation to report interpretation. Recorded coordinator adapters scored only **7.7%** and **13.3%**; the focused classifier reached **83.3% in the original account** and **91.7% in the second account**, on separate internal evaluations. These are not comparable controlled benchmarks, but they explain the engineering choice to specialize. [Experiment history →](RepairFlow/docs/ADAPTER_RECOVERY_PLAN.md)
 
 **An auditable learning loop.** Requests, accepted examples, training, evaluation, and actual serving are distinct milestones. We track them separately, rather than calling successful API traffic “a trained model.”
 
@@ -91,17 +91,22 @@ flowchart LR
 
 ## 📊 Evidence, not just a pitch
 
-The figures below are recorded experiment results from **24 October 2026**, not a live status feed. Provider agreement and adapter evaluation measure different things.
+The figures below are recorded experiment results from **24–25 October 2026**, not a live status feed. Provider agreement and adapter evaluation measure different things.
 
 | Experiment | Recorded result | What it establishes |
 |---|---|---|
-| Focused small-model adapter, Mubit internal evaluation | **83.3% · 10/12** versus **41.7% · 5/12** for base + prompt | A **41.7 percentage-point improvement** on Mubit's reported evaluation, with a small sample. |
+| Original-account adapter, Mubit internal evaluation | **83.3% · 10/12** versus **41.7% · 5/12** for base + prompt | A **41.7 percentage-point improvement** on Mubit's reported evaluation, with a small sample. |
+| Second-account adapter, Mubit internal evaluation | **91.7% · 11/12**, target **85%**; base + prompt reported **0/12** | Above-target internal quality; still below the 20-judged-case readiness requirement. |
 | New-account collection: 200 distinct synthetic scenarios | **195/200 · 97.5%** expected-label agreement; **0 request errors** | Strong provider responses for collection; not trained-adapter accuracy. |
 | Hazard cases within that 200-request collection | **28/28** expected escalation labels | Correct escalation on those synthetic provider cases; not a universal safety guarantee. |
 | Additional 300-request collection | **293/300 · 97.7%** expected-label agreement; **0 request errors** | Broader wording coverage: 60 scenario families with five variants each. |
 | Independent report evaluation corpus | **28 cases reserved and not submitted** | A separate evaluation remains to be run once adapter serving is verified. |
 
-The adapter is **Qwen3-4B-Instruct-2507**, version 1. At the last verified console check, it had **not passed readiness**: its score was below the **85% target**, and only **12 of the required 20 judged cases** were available. It was not deployed or serving application requests. The original and new-account collections are separate experiments; they must not be combined into a claim that one adapter trained on every call.
+Both focused adapters use **Qwen3-4B-Instruct-2507**, version 1. At the latest successful second-account inspection (25 October, approximately 01:38 BST), Terdessa showed **200 recorded requests, 32 kept examples, 1 rejected example, and 167 awaiting review**. The second-account adapter exceeded its quality target but remained **Testing**: **12 judged cases**, **20 required**, **no route**, and **no application requests served by the adapter**.
+
+These are separate account experiments, not successive versions tested on a common benchmark. Do not interpret the score difference as a controlled improvement from 83.3% to 91.7%. The second account's evaluation compares with recorded provider answers; an independent live provider comparison and schema-validity measurement were not reported. Twelve cases provide limited evidence of generalization.
+
+Later console sessions expired, so these values are historical observations, not a claim about the current live dashboard. The full backlog need not be reviewed before readiness, and reviewing it is not a verified guarantee of readiness.
 
 The report-classification integration in the application is currently **default-off shadow mode**. It does not replace the coordinator's authoritative decisions. The remaining milestone is to pass Mubit's gates, verify adapter/version and fallback provenance, then measure independent accuracy, latency, and cost.
 
@@ -153,7 +158,65 @@ Use this map to inspect implementation and recorded results. No paid training ru
 
 The evidence links include implementation, tests, and dated experiment notes. Private runtime logs and credentials are intentionally excluded from Git; the notes are not a substitute for a fresh, independently reproduced adapter benchmark.
 
+## 🧩 Runtime architecture and responsibility boundaries
+
+| Layer | Responsibility | What it cannot establish by itself |
+|---|---|---|
+| React interface | Intake, case state, approval controls, simulated responses, action history | A visible proposal is not proof of successful execution. |
+| FastAPI + SQLite | Persist cases, evidence, appointments, events and action outcomes | Stored events do not prove physical repair work happened. |
+| Background coordinator | Read scoped evidence and propose the next typed action | The model cannot bypass executor policy. |
+| Policy and executor | Check permissions, state, evidence, dependencies and execution conditions | Guards do not guarantee every unseen scenario is handled. |
+| Mubit gateway | Route configured provider requests and record learning traffic | An HTTP success does not mean an example was accepted for training. |
+| Focused report task | Interpret work scope and report text using a frozen output contract | Shadow results do not control authoritative workflow decisions. |
+| Mubit adapter lifecycle | Review examples, train a specialist and report evaluation | An above-target score alone does not prove serving or production savings. |
+
+A representative event flow is: **new evidence → queued work → coordinator reads case → typed proposal → validation/approval → domain action → persisted result → refreshed UI**. If the agent needs more information, the demo response form supplies evidence for another iteration. The report classifier is a separate, bounded task within this broader design.
+
+## 🧪 Testing and benchmark design
+
+There are three different evidence levels:
+
+1. **Deterministic regression tests** exercise policies, transitions, validation, structured outputs and failure recovery. They test software behavior without proving model reasoning quality.
+2. **Browser journeys** demonstrate representative workflows against the app, including simulated responses and visible execution outcomes. The recorded journeys and discovered bugs are linked above.
+3. **Model evaluations** score predictions. Provider agreement during collection and Mubit's internal adapter evaluation must be reported separately from our independent final benchmark.
+
+The report corpus includes separate training, development and reserved evaluation splits. The 28 reserved cases have not been sent to the model. As documented in the recovery log, some held-out text was exposed during development inspection; a newly authored blind set after freezing the candidate would provide stronger independence. Never silently recycle failed evaluation cases into prompt tuning and still call the result unseen.
+
+The final evaluation should capture, per case: expected label, predicted label, error status, actual serving model/version, fallback provenance, latency, token usage and available billing evidence. Report overall and per-class accuracy, a confusion matrix, unsafe false completion, escalation errors, fallback share, and cost per correct decision. Missing provenance means **unverified serving**, not an adapter success.
+
+Useful local checks, from their respective directories:
+
+```sh
+# RepairFlow/backend — software tests; do not run collection scripts as tests
+uv run pytest
+
+# RepairFlow/frontend-fixi
+npm test
+npm run typecheck
+npm run build
+npm run test:browser
+```
+
+These commands are a verification entry point, not a claim that they were all rerun for this README update. Browser test environment requirements are documented in the frontend project. Paid collection is a separate, explicitly budgeted activity.
+
+## 🚦 What is ready and what remains
+
+| Capability | State at the documented checkpoint |
+|---|---|
+| Case coordination and simulated responses | Implemented; representative end-to-end journeys recorded. |
+| Redesigned frontend | Pulled and production build passed; not every redesigned interaction was rechecked in that pull. |
+| Mubit provider integration | Implemented and exercised with real synthetic requests. |
+| Focused Qwen3 4B adapter | Trained; second-account internal quality above target. |
+| Adapter live readiness and application serving | Pending; no active route at the last successful inspection. |
+| Independent adapter/provider benchmark | Pending; reserved examples not submitted. |
+| Measured cost and latency improvement | Not established. |
+| Real tenant calls, physical visits and bookings | Simulated for the demo. |
+
+The demo can show the working provider-backed workflow and the trained adapter's evidence separately. A fallback demonstration must clearly label fixture behavior or recorded footage. It must not present them as a live adapter run.
+
 ## 🚀 Run the project
+
+Start in `RepairFlow/` when following the setup guide; the root `npm start` runs the separate learning lab, not the repair dashboard.
 
 Follow **[SETUP.md](RepairFlow/SETUP.md)** for dependencies, environment configuration, database initialization, and startup. For Mubit configuration, see the [integration guide](RepairFlow/docs/MUBIT_INTEGRATION.md); its earlier implementation notes should be read alongside the newer [adapter recovery log](RepairFlow/docs/ADAPTER_RECOVERY_PLAN.md).
 
@@ -173,3 +236,12 @@ server.mjs          Initial learning-lab server
 This is one Git repository. `RepairFlow/` is an ordinary project directory, with its path preserved for local configuration. The initial support-message experiment remains available through `npm start`; see its [separate guide](docs/LEARNING_LAB.md).
 
 Credentials, local databases, dependencies, builds, and runtime collection logs are excluded from Git. Configure your own environment and initialize the database after cloning. Live model calls consume credits; collection scripts are experiments, not a requirement for starting the demo.
+
+
+## 🏁 Submission and provenance
+
+The supplied Night Shift rules require all live LLM calls to go through Mubit, a public team repository, two check-ins, an uploaded video of at most three minutes, and a PDF deck. The [demo submission plan](docs/DEMO_SUBMISSION_PLAN.md) turns those deliverables into a timed story and rehearsal checklist. Our video targets **1:50**, with a stricter **2:00 maximum**.
+
+Fixi builds on the existing RepairFlow application. Event work includes Mubit integration, focused classification and collection experiments, demo response controls, decision reliability work, and the frontend redesign. The inherited application is not represented as newly written during the event. Organizer confirmation is needed on whether that foundation is acceptable under the event's code-origin rule; commit timestamps alone do not establish eligibility.
+
+For a quick technical review, start with the evidence map, then the recovery log and runnable setup. For a presentation, start with one repair case and show the exact decision that changes its path.

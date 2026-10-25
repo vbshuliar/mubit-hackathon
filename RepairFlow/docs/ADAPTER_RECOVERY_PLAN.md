@@ -79,3 +79,9 @@ Original account refreshed:classifierstillv1 83.3%/12cases,target85%,notready;co
 
 ## Scheduled check — 24 October 2026 19:41 BST
 Current in-app tab explicitly reports session ended and requires sign-in. No live adapter/review data could be read; historical83.3% remains unrefreshed. NoOTPrequested,paidcalls,changesorheldoutuse. Existing sign-in dependency alreadyreported; avoidanotherunchangednotification.
+
+## Second-account live inspection — 25 October 2026, approximately 01:38 BST
+
+User completed interactive sign-in to Terdessa. Project ws-9ea386dc56aefa33 now displays all 200 requests, zero request errors and zero routed requests. Task ln_28b32f28e9d7f4231463494a has 32 kept examples, 1 rejected and 167 waiting for review. Detail counter says 33 usable calls while traffic says 200; these counters represent different displayed stages and should not be conflated. Review today: 33 queued, 0 over limit, 0 running. First training started approximately 4 hours ago; latest training/history entries approximately 1 hour ago.
+
+New adapter ad_lane_89d7129e v1 (Qwen3-4B-Instruct-2507), training job ftjob_8c83865f, reports 91.7% (11/12) against an 85% target. Evaluation says Passed, base + prompt 0.0%, compared against recorded provider answers; live provider benchmark and schema validity not measured. Crucially, live requires 20 judged test cases and this version has only 12. Status remains Testing, routes none, no serving. This is a genuine above-target internal evaluation, not an independently validated deployable adapter. No paid calls, threshold edits, activation, or use of the 28 reserved evaluation cases. Remaining work: satisfy minimum judged-case count, verify supported serving/version provenance, then independently benchmark. Existing backlog provides no justification for another paid collection batch.
